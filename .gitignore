@@ -1,0 +1,21 @@
+# --- LaTeX temporäre Dateien ---
+*.aux
+*.log
+*.toc
+*.synctex.gz
+*.pdf
+*.fdb_latexmk
+*.fls
+*.out
+
+# --- ROS 2 / C++ / Build Ordner ---
+install/
+build/
+log/
+.catkin_workspace
+*.pyc
+
+# --- OS-spezifischer Müll ---
+.DS_Store
+Thumbs.db
+.vscode/
