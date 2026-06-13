@@ -1,0 +1,170 @@
+\documentclass[12pt,a4paper,oneside]{report}
+
+% --- Basis-Pakete für Sprache und Schrift ---
+\usepackage[utf8]{inputenc}
+\usepackage[german]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{helvet} 
+\renewcommand{\familydefault}{\sfdefault} 
+
+% --- Zeilenabstand & Mikrotypografie ---
+\usepackage{setspace}
+\setstretch{1.15} 
+\usepackage{microtype} 
+
+% --- Farben (Dezente Luftfahrt-CI) ---
+\usepackage{xcolor}
+\definecolor{AerospaceNavy}{RGB}{20, 40, 80} 
+\definecolor{Charcoal}{RGB}{50, 50, 50}      
+\definecolor{LightGrey}{RGB}{230, 235, 245}  % Für den dezenten Trennbalken
+
+% --- Seitenränder & Layout ---
+\usepackage[left=3cm,right=2.5cm,top=3cm,bottom=3cm]{geometry}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small\textcolor{Charcoal}{\leftmark}}
+\rhead{\small\textcolor{Charcoal}{Dual-Tilt-Rotor TDD --- Bundesheer SAR}}
+\rfoot{\textcolor{Charcoal}{\thepage}}
+\renewcommand{\headrulewidth}{0.4mm}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{AerospaceNavy}\leaders\hrule height \headrulewidth\hfill}}
+
+% --- Überschriften einfärben ---
+\usepackage{titlesec}
+\titleformat{\chapter}[hang]{\LARGE\bfseries}{\thechapter\quad}{0pt}{\color{AerospaceNavy}}
+\titleformat{\section}{\Large\bfseries}{\thesection\quad}{0pt}{\color{AerospaceNavy}}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection\quad}{0pt}{\color{AerospaceNavy}}
+
+% --- Grafiken, Tabellen & Mathematik ---
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array} 
+
+% --- Hyperref Konfiguration ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=AerospaceNavy, 
+    filecolor=AerospaceNavy,      
+    urlcolor=AerospaceNavy,  
+    citecolor=AerospaceNavy,
+    pdftitle={Technical Design Document - Dual-Tilt-Rotor VTOL},
+    pdfauthor={DaSommsi}
+}
+
+% =======================================================
+% START DES DOKUMENTS
+% =======================================================
+\begin{document}
+
+\color{Charcoal} 
+
+% --- MODERNES, LINKSBÜNDIGES DECKBLATT (OPTIMIERT) ---
+\begin{titlepage}
+    \flushleft 
+    
+    % Logo-Bereich ganz oben
+    \begin{figure}[h!]
+        \flushleft
+        % \includegraphics[height=1.5cm]{logos/bundesheer_logo.png}
+        \hspace{1cm}
+        % \includegraphics[height=1.5cm]{logos/htl_logo.png}
+    \end{figure}
+    
+    \vspace*{2.5cm}
+    
+    % Vertikaler Akzentbalken und Titel
+    \noindent
+    \begin{tabular}{!{\color{AerospaceNavy}\vrule width 4pt} p{\dimexpr\textwidth-25pt}}
+        \hspace{15pt} \begin{minipage}{\linewidth}
+            {\LARGE\bfseries TECHNICAL DESIGN DOCUMENT\par}
+            \vspace{0.4cm}
+            {\Huge\bfseries DUAL-TILT-ROTOR VTOL\par}
+            \vspace{0.6cm}
+            {\large\color{Charcoal}Modulares 3m-VTOL-System mit schwarmbereiter Architektur für den Katastrophenschutz, Personensuche und Echtzeit-Kartierung\par}
+        \end{minipage}
+    \end{tabular}
+
+    \vfill
+    \vfill
+    
+    % Horizontaler dünner Trennbalken vor den Metadaten
+    \noindent\textcolor{LightGrey}{\rule{\textwidth}{1pt}}
+    \vspace*{0.6cm}
+
+    % Cleane, perfekt strukturierte Fußdaten (Zweispaltig mit klarer Hierarchie)
+    \begin{minipage}[t]{0.5\textwidth}
+        {\footnotesize\color{AerospaceNavy}\uppercase{\textbf{Autoren}}\par}
+        \vspace{0.1cm}
+        {\large\textbf{David Sommerer}}\par
+        {\large\textbf{Sebastian Minkenberg}}\par
+        
+        \vspace{0.6cm} % Deutlicher Abstand zur nächsten Kategorie
+        
+        {\footnotesize\color{AerospaceNavy}\uppercase{\textbf{Organisation}}\par}
+        \vspace{0.1cm}
+        HTL-Diplomprojekt\par
+    \end{minipage}
+    \begin{minipage}[t]{0.45\textwidth}
+        {\footnotesize\color{AerospaceNavy}\uppercase{\textbf{Kooperation \& Zertifizierung}}\par}
+        \vspace{0.1cm}
+        Österreichisches Bundesheer\par
+        Austro Control --- SORA SAIL II/III\par
+        
+        \vspace{0.6cm} % Symmetrischer Abstand auf der rechten Seite
+        
+        {\footnotesize\color{AerospaceNavy}\uppercase{\textbf{Dokumentenstand}}\par}
+        \vspace{0.1cm}
+        \begin{tabular}{ll}
+            Version: & 1.0.0 \\
+            Datum:   & \today \\
+        \end{tabular}
+    \end{minipage}
+
+    \vspace*{1cm}
+\end{titlepage}
+
+% --- Verzeichnisse ---
+\tableofcontents
+\newpage
+
+% --- Abkürzungsverzeichnis ---
+\chapter*{Abkürzungsverzeichnis}
+\addcontentsline{toc}{chapter}{Abkürzungsverzeichnis}
+
+\begin{tabular}{p{2.5cm} p{11cm}}
+    \toprule
+    \textbf{Kürzel} & \textbf{Bedeutung / Beschreibung} \\
+    \midrule
+    \textbf{ANSYS} & Analysis System (High-End Simulationssoftware) \\
+    \textbf{CFD}   & Computational Fluid Dynamics (Strömungssimulation) \\
+    \textbf{CoG}   & Center of Gravity (Schwerpunkt) \\
+    \textbf{ESC}   & Electronic Speed Controller (Drehzahlregler) \\
+    \textbf{FEA}   & Finite Element Analysis (Strukturanalyse) \\
+    \textbf{KPI}   & Key Performance Indicator (Leistungskennzahl) \\
+    \textbf{ROS 2} & Robot Operating System 2 \\
+    \textbf{SAR}   & Search and Rescue (Such- und Rettungsdienst) \\
+    \textbf{SORA}  & Specific Operations Risk Assessment (Risikoanalyse) \\
+    \textbf{VTOL}  & Vertical Take-Off and Landing (Senkrechtstarter) \\
+    \bottomrule
+\end{tabular}
+\newpage
+
+% --- Automatische Einbindung der 13 Industrie-Kapitel ---
+\include{chapters/01_admin}
+\include{chapters/02_conops}
+\include{chapters/03_architecture}
+\include{chapters/04_aerodynamics}
+\include{chapters/05_propulsion_tilt}
+\include{chapters/06_avionics_fcs}
+\include{chapters/07_electrical_energy}
+\include{chapters/08_communication}
+\include{chapters/09_payload}
+\include{chapters/10_safety}
+\include{chapters/11_gcs_hmi}
+\include{chapters/12_manufacturing}
+\include{chapters/13_testing}
+
+\end{document}
