@@ -24,7 +24,7 @@
 \pagestyle{fancy}
 \fancyhf{}
 \lhead{\small\textcolor{Charcoal}{\leftmark}}
-\rhead{\small\textcolor{Charcoal}{Dual-Tilt-Rotor TDD --- Bundesheer SAR}}
+\rhead{\small\textcolor{Charcoal}{Dual-Tilt-Rotor TDD}}
 \rfoot{\textcolor{Charcoal}{\thepage}}
 \renewcommand{\headrulewidth}{0.4mm}
 \renewcommand{\headrule}{\hbox to\headwidth{\color{AerospaceNavy}\leaders\hrule height \headrulewidth\hfill}}
@@ -118,13 +118,47 @@
         {\footnotesize\color{AerospaceNavy}\uppercase{\textbf{Dokumentenstand}}\par}
         \vspace{0.1cm}
         \begin{tabular}{ll}
-            Version: & 1.0.0 \\
+            Version: & 0.1.0 \\
             Datum:   & \today \\
         \end{tabular}
     \end{minipage}
 
     \vspace*{1cm}
 \end{titlepage}
+
+% --- DOKUMENTENLENKUNG / VERSIONSHISTORIE ---
+\chapter*{Dokumentenlenkung und Versionshistorie}
+\addcontentsline{toc}{chapter}{Dokumentenlenkung und Versionshistorie}
+
+Dieses Dokument unterliegt einem kontrollierten Änderungsmanagement. Gemäß den behördlichen Vorgaben der Austro Control zur Dokumentenlenkung im SORA-Prozess werden sämtliche strukturellen, technischen oder operationellen Modifikationen an diesem Technical Design Document (TDD) in der folgenden Historie lückenlos erfasst und begründet.
+
+\vspace{0.3cm}
+
+\begin{table}[h!]
+    \centering
+    \small
+    \begin{tabular}{p{1.8cm} p{2.2cm} p{7.5cm} p{3.0cm}}
+        \toprule
+        \textbf{Version} & \textbf{Datum} & \textbf{Beschreibung der Änderung} & \textbf{Autor / Freigabe} \\
+        \midrule
+        0.0.0 & 01.06.2026 & Initiales Projektaufsetzen. Definition der 13 Industrie-Kapitelübersichten und Strukturierung des Master-Files. & D. Sommerer, \newline S. Minkenberg \\
+        \midrule
+        0.1.0 & 14.06.2026 & \textbf{Meilenstein CONOPS abgeschlossen.} Definition der fünf autonomen Flugphasen, Implementierung des sensorlosen EKF-Windschätzungsalgorithmus sowie behördengerechte SORA-Risikoeinstufung (SAIL IV) nach Austro-Control-Leitfaden. & D. Sommerer \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:revision_history}
+\end{table}
+
+\vspace{0.6cm}
+
+\section*{Referenzierte Leitfäden und Behörden-Dokumente}
+Die in diesem Dokument getroffenen rechtlichen und operationellen Annahmen basieren auf den folgenden behördlichen Grundlagen in ihrer jeweils aktuellen Fassung:
+
+\begin{itemize}
+    \item \textbf{Austro Control GmbH:} \textit{Specific Operations Risk Assessment (SORA) Leitfaden und weiterführende Informationen}, Version 1.1, Stand 03/2026.
+    \item \textbf{EASA Easy Access Rules:} \textit{Acceptable Means of Compliance (AMC) und Guidance Material (GM) zu Artikel 11 der Durchführungsverordnung (EU) 2019/947}.
+\end{itemize}
+\newpage
 
 % --- Verzeichnisse ---
 \tableofcontents
