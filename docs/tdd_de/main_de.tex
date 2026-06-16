@@ -19,7 +19,7 @@
 \definecolor{LightGrey}{RGB}{230, 235, 245}  % Für den dezenten Trennbalken
 
 % --- Seitenränder & Layout ---
-\usepackage[left=3cm,right=2.5cm,top=3cm,bottom=3cm]{geometry}
+\usepackage[left=3cm,right=2.5cm,top=3cm,bottom=3cm,headheight=25pt]{geometry}  % headheight könnten/sollten wir noch runtersetzten
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
@@ -38,6 +38,7 @@
 % --- Grafiken, Tabellen & Mathematik ---
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{longtable}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{array} 
@@ -153,6 +154,7 @@ Dieses Dokument unterliegt einem kontrollierten Änderungsmanagement. Gemäß de
 
 \vspace{0.6cm}
 
+\newpage
 \section*{Referenzierte Leitfäden und Behörden-Dokumente}
 Die in diesem Dokument getroffenen rechtlichen und operationellen Annahmen basieren auf den folgenden behördlichen Grundlagen in ihrer jeweils aktuellen Fassung:
 
@@ -170,10 +172,28 @@ Die in diesem Dokument getroffenen rechtlichen und operationellen Annahmen basie
 \chapter*{Abkürzungsverzeichnis}
 \addcontentsline{toc}{chapter}{Abkürzungsverzeichnis}
 
-\begin{tabular}{p{2.5cm} p{11cm}}
+% Wenn die Tabelle dezent kleiner sein soll, kannst du hier \small aktivieren:
+\small 
+
+% Start der longtable (ersetzt table und tabular)
+\begin{longtable}{p{2.5cm} p{11cm}}
     \toprule
     \textbf{Kürzel} & \textbf{Bedeutung / Beschreibung} \\
     \midrule
+    \endfirsthead % Alles oberhalb gilt NUR für die allererste Seite
+    
+    \toprule
+    \textbf{Kürzel} & \textbf{Bedeutung / Beschreibung} (Fortsetzung) \\
+    \midrule
+    \endhead % Alles oberhalb wird auf JEDER Folgeseite als Kopfzeile wiederholt
+    
+    \bottomrule
+    \endfoot % Wird am Ende JEDER Seite (außer der letzten) platziert
+    
+    \bottomrule
+    \endlastfoot % Wird NUR am absoluten Ende der gesamten Tabelle platziert
+
+    % --- HIER FOLGEN DEINE DATENZEILEN ---
     \textbf{AEC}    & Airspace Encounter Category (Luftraum-Begegnungskategorie) \\
     \textbf{AGL}    & Above Ground Level (Höhe über Grund) \\
     \textbf{ANSYS}  & Analysis System (High-End Simulationssoftware) \\
@@ -214,8 +234,7 @@ Die in diesem Dokument getroffenen rechtlichen und operationellen Annahmen basie
     \textbf{UAS}    & Unmanned Aircraft System (Unbemanntes Luftfahrzeugsystem) \\
     \textbf{VTOL}   & Vertical Take-Off and Landing (Senkrechtstart und -landung) \\
     \textbf{WGS84}  & World Geodetic System 1984 (Geodätisches Referenzsystem für GPS) \\
-    \bottomrule
-\end{tabular}
+\end{longtable}
 
 % --- Automatische Einbindung der 13 Industrie-Kapitel ---
 \include{chapters/01_admin}
