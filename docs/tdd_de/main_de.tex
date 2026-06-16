@@ -118,7 +118,7 @@
         {\footnotesize\color{AerospaceNavy}\uppercase{\textbf{Dokumentenstand}}\par}
         \vspace{0.1cm}
         \begin{tabular}{ll}
-            Version: & 0.1.0 \\
+            Version: & 0.1.1 \\
             Datum:   & \today \\
         \end{tabular}
     \end{minipage}
@@ -141,9 +141,11 @@ Dieses Dokument unterliegt einem kontrollierten Änderungsmanagement. Gemäß de
         \toprule
         \textbf{Version} & \textbf{Datum} & \textbf{Beschreibung der Änderung} & \textbf{Autor / Freigabe} \\
         \midrule
-        0.0.0 & 01.06.2026 & Initiales Projektaufsetzen. Definition der 13 Industrie-Kapitelübersichten und Strukturierung des Master-Files. & D. Sommerer, \newline S. Minkenberg \\
+        0.0.0 & 13.06.2026 & Initiales Projektaufsetzen. Definition der 13 Industrie-Kapitelübersichten und Strukturierung des Master-Files. & D. Sommerer, \newline S. Minkenberg \\
         \midrule
         0.1.0 & 14.06.2026 & \textbf{Meilenstein CONOPS abgeschlossen.} Definition der fünf autonomen Flugphasen, Implementierung des sensorlosen EKF-Windschätzungsalgorithmus sowie behördengerechte SORA-Risikoeinstufung (SAIL IV) nach Austro-Control-Leitfaden. & D. Sommerer \\
+        \midrule
+        0.1.1 & 16.06.2026 & Integration der redundanten C2-Link-Frequenzen ($868\,\text{MHz}$ / $2{,}4\,\text{GHz}$ / LTE), Ergänzung der STS-Fernpilotenkompetenzen, Spezifikation des Emergency Response Plans (ERP) sowie Korrektur des thermischen Höhenprofils. & D. Sommerer \\
         \bottomrule
     \end{tabular}
     \label{tab:revision_history}
@@ -172,19 +174,48 @@ Die in diesem Dokument getroffenen rechtlichen und operationellen Annahmen basie
     \toprule
     \textbf{Kürzel} & \textbf{Bedeutung / Beschreibung} \\
     \midrule
-    \textbf{ANSYS} & Analysis System (High-End Simulationssoftware) \\
-    \textbf{CFD}   & Computational Fluid Dynamics (Strömungssimulation) \\
-    \textbf{CoG}   & Center of Gravity (Schwerpunkt) \\
-    \textbf{ESC}   & Electronic Speed Controller (Drehzahlregler) \\
-    \textbf{FEA}   & Finite Element Analysis (Strukturanalyse) \\
-    \textbf{KPI}   & Key Performance Indicator (Leistungskennzahl) \\
-    \textbf{ROS 2} & Robot Operating System 2 \\
-    \textbf{SAR}   & Search and Rescue (Such- und Rettungsdienst) \\
-    \textbf{SORA}  & Specific Operations Risk Assessment (Risikoanalyse) \\
-    \textbf{VTOL}  & Vertical Take-Off and Landing (Senkrechtstarter) \\
+    \textbf{AEC}    & Airspace Encounter Category (Luftraum-Begegnungskategorie) \\
+    \textbf{AGL}    & Above Ground Level (Höhe über Grund) \\
+    \textbf{ANSYS}  & Analysis System (High-End Simulationssoftware) \\
+    \textbf{ARC}    & Air Risk Class (Luftrisikoklasse) \\
+    \textbf{BVLOS}  & Beyond Visual Line of Sight (Flug außerhalb der Sichtweite) \\
+    \textbf{C2}     & Command and Control (Steuerungs- und Kontroll-Datenlink) \\
+    \textbf{CFD}    & Computational Fluid Dynamics (Strömungssimulation) \\
+    \textbf{COFDM}  & Coded Orthogonal Frequency Division Multiplexing (Verschlüsseltes Mehrkanal-Übertragungsverfahren) \\
+    \textbf{CoG}    & Center of Gravity (Schwerpunkt) \\
+    \textbf{EASA}   & European Union Aviation Safety Agency (Europäische Agentur für Flugsicherheit) \\
+    \textbf{EKF}    & Extended Kalman Filter (Mathematischer Zustandsschätz-Algorithmus) \\
+    \textbf{ELT}    & Emergency Locator Transmitter (Notfunkbake) \\
+    \textbf{EO/IR}  & Electro-Optical / Infrared (Optisch-thermisches Kamerasystem) \\
+    \textbf{ESC}    & Electronic Speed Controller (Elektronischer Drehzahlregler) \\
+    \textbf{FEA}    & Finite Element Analysis (Strukturanalyse) \\
+    \textbf{FHSS}   & Frequency Hopping Spread Spectrum (Frequenzsprung-Verfahren) \\
+    \textbf{FTS}    & Flight Termination System (Unabhängiges Flugterminierungssystem) \\
+    \textbf{GCS}    & Ground Control Station (Bodenstation) \\
+    \textbf{GRC}    & Ground Risk Class (Bodenrisikoklasse) \\
+    \textbf{HMI}    & Human Machine Interface (Mensch-Maschine-Schnittstelle) \\
+    \textbf{iGRC}   & Intrinsic Ground Risk Class (Intrinsische Bodenrisikoklasse) \\
+    \textbf{IMU}    & Inertial Measurement Unit (Trägheitsmesseinheit) \\
+    \textbf{ISM}    & Industrial, Scientific and Medical Band (Lizenzfreie Frequenzbänder) \\
+    \textbf{KPI}    & Key Performance Indicator (Leistungskennzahl) \\
+    \textbf{LKP}    & Last Known Position (Letzte bekannte Position) \\
+    \textbf{LTE}    & Long Term Evolution (Mobilfunkstandard der 4. Generation) \\
+    \textbf{MGRS}   & Military Grid Reference System (Militärisches Gitter-Referenzsystem) \\
+    \textbf{MSL}    & Mean Sea Level (Höhe über dem Meeresspiegel) \\
+    \textbf{MTOM}   & Maximum Take-Off Mass (Maximales Abfluggewicht) \\
+    \textbf{OAT}    & Outside Air Temperature (Außentemperatur) \\
+    \textbf{ROS 2}  & Robot Operating System 2 \\
+    \textbf{SAIL}   & Specific Assurance and Integrity Level (Sicherheits- und Absicherungsstufe) \\
+    \textbf{SAR}    & Search and Rescue (Such- und Rettungsdienst) \\
+    \textbf{SORA}   & Specific Operations Risk Assessment (Risikoanalyseverfahren) \\
+    \textbf{STS}    & Standard Scenario (Standard-Szenario der EASA) \\
+    \textbf{TDD}    & Technical Design Document (Technisches Auslegungsdokument) \\
+    \textbf{TMZ}    & Transponder Mandatory Zone (Luftraum mit Transponderpflicht) \\
+    \textbf{UAS}    & Unmanned Aircraft System (Unbemanntes Luftfahrzeugsystem) \\
+    \textbf{VTOL}   & Vertical Take-Off and Landing (Senkrechtstart und -landung) \\
+    \textbf{WGS84}  & World Geodetic System 1984 (Geodätisches Referenzsystem für GPS) \\
     \bottomrule
 \end{tabular}
-\newpage
 
 % --- Automatische Einbindung der 13 Industrie-Kapitel ---
 \include{chapters/01_admin}
