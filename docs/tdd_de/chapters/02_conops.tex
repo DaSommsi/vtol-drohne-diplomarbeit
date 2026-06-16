@@ -8,12 +8,23 @@ Die hier definierten Betriebsparameter bilden die fundamentale Grundlage für di
 \label{sec:betriebsszenarien}
 
 Der Missionsablauf wird standardmäßig von einem einzelnen Fernpiloten (Single Operator) über eine Bodenstation (Ground Control Station, GCS) überwacht und gesteuert. 
+Der eingesetzte Fernpilot muss zwingend im Besitz eines gültigen EU-Fernpilotenzeugnisses der Kategorie A2 sein sowie alle Kriterien zur Durchführung von Standard-Szenarien 
+(STS-01 / STS-02 bzw. nationale Äquivalente der Kategorie \textit{Specific}) erfüllen. Zur Erfüllung der behördlichen Auflagen für anspruchsvolle Betriebsumgebungen (SAIL IV) 
+verfügt das operative Personal über eine taktische Zusatzqualifikation in Form einer SORA-Zertifizierung (Level 3) sowie ein erfolgreich absolviertes, herstellerspezifisches System-Rating, 
+welches das Beherrschen kritischer Flugzustände wie Triebwerksausfälle und Not-Transitionen beinhaltet.
+
 Die Flugphasen teilen sich in ein hocheffizientes, teils autonomes Multirotor-Starrflügler-Mischprofil auf und gliedern sich in die folgenden fünf Abschnitte:
 
 \subsection{Vorflugkontrolle und Missionsplanung (Pre-Flight)}
-Vor dem Systemstart führt der Operator eine standardisierte digitale Vorflugkontrolle an der GCS durch. Über das grafische User Interface (HMI) 
-der Bodenstation wird das vordefinierte Such- oder Katastrophengebiet via Polygon-Auswahl auf einer digitalen Karte festgelegt. Die Flugwegpunkte, 
-die einzuhaltenden Sicherheitsgrenzen (Geofencing) sowie die autonomen Suchraster werden vom System berechnet und über den primären Datenlink (Command \& Control, C2) an den Autopiloten (Pixhawk 6X / PX4-Firmware) übertragen.
+Vor dem Systemstart führt der Operator eine standardisierte digitale Vorflugkontrolle an der GCS durch. 
+Über das grafische User Interface (HMI) der Bodenstation wird das vordefinierte Such- oder Katastrophengebiet via Polygon-Auswahl auf einer digitalen Karte festgelegt. 
+Die Flugwegpunkte, die einzuhaltenden Sicherheitsgrenzen (Geofencing) sowie die autonomen Suchraster werden vom System berechnet und über die primäre 
+und sekundäre Datenverbindung (Command \& Control, C2) an den Autopiloten (Pixhawk 6X / PX4-Firmware) übertragen. 
+
+Die C2-Architektur ist hierfür redundant und frequenzgetrennt aufgebaut: Der primäre C2-Datenlink arbeitet im schmalbandigen $868\,\text{MHz}$-Band mittels 
+Frequenzhoppingsverfahren (FHSS) bei einer Sendeleistung von $500\,\text{mW}$, was eine maximale Durchdringung und Unempfindlichkeit gegen alpine Abschattungen gewährleistet. 
+Als sekundärer Backup-Link dient eine verschlüsselte $2{,}4\,\text{GHz}$-Nahbereichs-Funkstrecke, die für den Langstrecken-Reiseflug (BVLOS) nahtlos an ein bordeigenes 4G/5G-LTE-Mobilfunkmodul gekoppelt ist. 
+Die Übertragung von sensorischen Nutzdaten (Echtzeit-Video- und Wärmebildströme) erfolgt physikalisch autark über eine COFDM-modulierte $5{,}8\,\text{GHz}$-Richtfunkstrecke zur GCS.
 
 \subsection{Startphase und Aufstieg (VTOL-Modus)}
 Der Start erfolgt vollautomatisch und vertikal aus unvorbereitetem oder blockiertem Gelände heraus. Das System agiert in dieser Phase als Tricopter: 
@@ -51,9 +62,20 @@ Der Autopilot wechselt dabei verzögerungsfrei in einen assistierten Flugmodus (
 
 Für den Fall einer kritischen Systemstörung während des Fluges (z.~B. mechanischer Defekt des hinteren VTOL-Aktuators oder Ausfall des Heckmotors) sind zwei gestaffelte Sicherheitsverfahren implementiert:
 \begin{enumerate}
-    \item \textbf{Contingency-Verfahren (Bauchlandung):} Ist ein sicherer Schwebeflug zur vertikalen Landung technisch ausgeschlossen, ist der Rumpf strukturell so ausgelegt, dass eine kontrollierte Gleitlandung als Segelflugzeug (Bauchlandung) auf einer freien Freifläche durchgeführt werden kann.
-    \item \textbf{Emergency-Verfahren (Rettungssystem):} Bei einem vollständigen Kontrollverlust oder totalem Avionikausfall dient ein integrierter, ballistischer Rettungsfallschirm als finale Sicherheitsbarriere, um die kinetische Aufschlagsenergie des Gesamtsystems zu minimieren.
+    \item \textbf{Contingency-Verfahren (Bauchlandung):} Ist ein sicherer Schwebeflug zur vertikalen Landung technisch ausgeschlossen, ist der Rumpf strukturell so ausgelegt, 
+                                                         dass eine kontrollierte Gleitlandung als Segelflugzeug (Bauchlandung) auf einer freien Freifläche durchgeführt werden kann.
+    \item \textbf{Emergency-Verfahren (Rettungssystem):} Bei einem vollständigen Kontrollverlust oder totalem Avionikausfall dient ein integrierter, ballistischer Rettungsfallschirm als finale Sicherheitsbarriere, 
+                                                         um die kinetische Aufschlagsenergie des Gesamtsystems zu minimieren.
 \end{enumerate}
+
+Für den Fall eines unkontrollierten Absturzes oder der Aktivierung der finalen Flugsicherheitsbarrieren greift unverzüglich ein vordefinierter Notfallplan (Emergency Response Plan, ERP). 
+Die Aktivierungsschwelle des ERP ist strikt an den Hard Kill des unabhängigen Terminierungssystems (FTS), einen vollständigen Verlust des C2-Datenlinks für mehr als $30\,\text{Sekunden}$ (Loss of Link) 
+oder an die manuelle Betätigung des Not-Aus-Schalters an der Bodenstation gekoppelt. 
+
+Sobald das System in diesen Zustand übergeht, generiert die Avionik einen automatisierten Telemetrie-Notexport der letzten bekannten Position (Last Known Position, LKP). 
+Dieser Datensatz wird simultan im WGS84-Format (für zivile Rettungsorganisationen) sowie im MGRS-Format (Military Grid Reference System, zur direkten Koordinatenübergabe an das Bundesheer) 
+über verbleibende Schnittstellen an die GCS übermittelt. Zur physischen Bergung und zum Schutz von Personen am Boden wird zeitgleich mit dem Auswurf des Rettungsfallschirms eine autark batteriegespeiste, 
+akustische $105\,\text{dB}$ Piezo-Notfallsirene (Hörbarkeit von mindestens $500\,\text{m}$ im alpinen Gelände) sowie eine UHF-Notfunkbake (Emergency Locator Transmitter, ELT) mit einer autarken Sendezeit von $72\,\text{Stunden}$ aktiviert.
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 
@@ -68,9 +90,12 @@ Da sich das UAS in der Entwurfsphase befindet, gelten die aufgeführten Paramete
 Das Geschwindigkeitsspektrum ($V$-Spektrum) wird so dimensioniert, dass sowohl ein hocheffizienter Reiseflug als auch eine sichere Langsamflugphase im Suchgebiet gewährleistet sind:
 \begin{itemize}
     \item \textbf{Mindestfluggeschwindigkeit ($V_{stall}$):} Um im reinen Starrflügler-Modus einen stabilen aerodynamischen Auftrieb zu generieren, wird eine minimale Gleitgeschwindigkeit von $12{,}5\,\text{m/s}$ ($\approx 45\,\text{km/h}$) definiert.
-    \item \textbf{Marschgeschwindigkeit ($V_{cruise}$):} Der energetisch optimale Reiseflug zum Zielgebiet erfolgt bei einer Nenngeschwindigkeit von $18\,\text{m/s}$ ($\approx 65\,\text{km/h}$). Diese Geschwindigkeit ist primär auf die mechanische Stabilisierungsrate des optischen und infraroten Gimbal-Kamerasystems abgestimmt.
-    \item \textbf{Maximal zulässige Fluggeschwindigkeit ($V_{max}$):} Basierend auf den vorläufigen aerodynamischen Berechnungen wird die strukturelle Belastungsgrenze (\textit{Never-Exceed Speed}, $V_{NE}$) für den Starrflügler-Betrieb auf $36\,\text{m/s}$ ($\approx 130\,\text{km/h}$) festgelegt.
-    \item \textbf{Transitions-Korridor ($V_{trans}$):} Der sichere aerodynamische Übergang zwischen Vertikal- und Horizontalflug ist exakt auf ein Geschwindigkeitsfenster zwischen $14\,\text{m/s}$ (aerodynamischer Mindestauftrieb) und $22\,\text{m/s}$ (maximale dynamische Lastgrenze der Schwenkmechanik) limitiert.
+    \item \textbf{Marschgeschwindigkeit ($V_{cruise}$):} Der energetisch optimale Reiseflug zum Zielgebiet erfolgt bei einer Nenngeschwindigkeit von $18\,\text{m/s}$ ($\approx 65\,\text{km/h}$). 
+                                                         Diese Geschwindigkeit ist primär auf die mechanische Stabilisierungsrate des optischen und infraroten Gimbal-Kamerasystems abgestimmt.
+    \item \textbf{Maximal zulässige Fluggeschwindigkeit ($V_{max}$):} Basierend auf den vorläufigen aerodynamischen Berechnungen wird die strukturelle Belastungsgrenze (\textit{Never-Exceed Speed}, $V_{NE}$) 
+                                                                      für den Starrflügler-Betrieb auf $36\,\text{m/s}$ ($\approx 130\,\text{km/h}$) festgelegt.
+    \item \textbf{Transitions-Korridor ($V_{trans}$):} Der sichere aerodynamische Übergang zwischen Vertikal- und Horizontalflug ist exakt auf ein Geschwindigkeitsfenster zwischen $14\,\text{m/s}$ (aerodynamischer Mindestauftrieb) 
+                                                       und $22\,\text{m/s}$ (maximale dynamische Lastgrenze der Schwenkmechanik) limitiert.
 \end{itemize}
 
 \subsection{Strukturelle Lastgrenzen (Load Factors)}
@@ -86,9 +111,11 @@ Aufgrund der Einstufung in die regulatorische \textit{Specific}-Kategorie und de
 \begin{itemize}
     \item \textbf{Einsatzflughöhe (AGL):} Der Standardbetrieb zur großflächigen Personensuche erfolgt in einer nominellen Flughöhe von $250\,\text{m}$ über Grund (Above Ground Level), um eine maximale Sensorabdeckung zu erzielen.
     \item \textbf{Maximale Betriebshöhe (MSL):} Die maximale barometrische Gipfelhöhe wird auf $4.000\,\text{m}$ über dem Meeresspiegel (Mean Sea Level) limitiert. 
-    \item \textbf{Dichtehöhen-Limitierung (Hover Ceiling OGE):} Aufgrund der abnehmenden Luftdichte im Hochgebirge wird das freie Schweben außerhalb des Bodeneffekts (\textit{Out of Ground Effect}) bei maximalem Abfluggewicht auf eine Dichtehöhe von $2.500\,\text{m}$ MSL begrenzt. Oberhalb dieser Grenze muss der Übergang in den Fixed-Wing-Modus zwingend im dynamischen Vorwärtsflug erfolgen.
+    \item \textbf{Dichtehöhen-Limitierung (Hover Ceiling OGE):} Aufgrund der abnehmenden Luftdichte im Hochgebirge wird das freie Schweben außerhalb des Bodeneffekts (\textit{Out of Ground Effect}) 
+                                                                bei maximalem Abfluggewicht auf eine Dichtehöhe von $2.500\,\text{m}$ MSL begrenzt. Oberhalb dieser Grenze muss der Übergang in den Fixed-Wing-Modus zwingend im dynamischen Vorwärtsflug erfolgen.
     \item \textbf{Vertikale Bewegungsraten:} Im reinen VTOL-Mischbetrieb wird die maximale Steigrate auf $2{,}5\,\text{m/s}$ und die maximale Sinkrate aus Stabilitätsgründen (Vermeidung von Wirbelringst some-Effekten) auf $1{,}5\,\text{m/s}$ festgesetzt.
-    \item \textbf{Flugzeit und Missionsdauer:} Das Gesamtsystem wird für eine Mindestbetriebszeit von $60\,\text{Minuten}$ dimensioniert. Dieses Zeitfenster beinhaltet eine integrierte 10-prozentige energetische Sicherheitsreserve für unvorhergesehene Windeinflüsse.
+    \item \textbf{Flugzeit und Missionsdauer:} Das Gesamtsystem wird für eine Mindestbetriebszeit von $60\,\text{Minuten}$ dimensioniert. 
+                                               Dieses Zeitfenster beinhaltet eine integrierte 10-prozentige energetische Sicherheitsreserve für unvorhergesehene Windeinflüsse.
 \end{itemize}
 
 \subsection{Zusammenfassung der technischen Flugleistungsparameter}
@@ -104,7 +131,7 @@ Die folgenden Tabellen fassen die primären Entwurfsparameter des Gesamtsystems 
         \midrule
         Maximales Abfluggewicht (MTOM) & $20{,}0\,\text{kg}$ bis $30{,}0\,\text{kg}$ & -- \\
         Mindestgeschwindigkeit ($V_{stall}$) & $12{,}5\,\text{m/s}$ & $24{,}3\,\text{kt} $ \\
-        Marschgeschwindigkeit ($V_{cruise}$) & $18{,}0\,\text{m/s}$ & $35{,}0\,\text{kt}$ \\
+        Marschgeschwindigkeit ($V_{cruise}$) & $22{,}0\,\text{m/s}$ & $42{,}7\,\text{kt}$ \\
         Maximalgeschwindigkeit ($V_{max} / V_{NE}$) & $36{,}0\,\text{m/s}$ & $70{,}0\,\text{kt}$ \\
         Min. Transitionsgeschwindigkeit & $14{,}0\,\text{m/s}$ & $27{,}2\,\text{kt}$ \\
         Max. Transitionsgeschwindigkeit & $22{,}0\,\text{m/s}$ & $42{,}7\,\text{kt}$ \\
@@ -141,39 +168,59 @@ Die folgenden Tabellen fassen die primären Entwurfsparameter des Gesamtsystems 
 \section{Umweltbedingungen und operationelle Grenzen (Environmental Constraints)}
 \label{sec:environmental_constraints}
 
-Um einen sicheren und zuverlässigen Betrieb im alpinen Raum sowie in unvorhersehbaren Katastrophengebiets-Szenarien zu gewährleisten, werden in diesem Abschnitt die meteorologischen und umweltbedingten Einsatzgrenzen des UAS definiert. Diese Parameter dienen als direkte Anforderungsbasis für die Kapselung der Elektronik sowie für die Auslegung der Flugregelungskomponenten.
+Um einen sicheren und zuverlässigen Betrieb im alpinen Raum sowie in unvorhersehbaren Katastrophengebiets-Szenarien zu gewährleisten, 
+werden in diesem Abschnitt die meteorologischen und umweltbedingten Einsatzgrenzen des UAS definiert. Diese Parameter dienen als direkte Anforderungsbasis für die Kapselung der Elektronik sowie für die Auslegung der Flugregelungskomponenten.
 
 \subsection{Wind- und Böenlimits im Hybrid-Betrieb}
 Aufgrund der aerodynamischen Komplexität eines Tilt-Rotor-Systems müssen die Windgrenzen streng nach den jeweiligen Flugphasen differenziert werden:
 \begin{itemize}
     \item \textbf{Starrflügler-Reiseflug (Fixed-Wing):} Das Gesamtsystem wird für eine maximale konstante Windgeschwindigkeit von $12\,\text{m/s}$ ($\approx 43\,\text{km/h}$) aus allen Richtungen sowie für Spitzenböen von bis zu $15\,\text{m/s}$ ausgelegt.
-    \item \textbf{Schwebeflug und Transitionsphase (VTOL):} Während des vertikalen Starts, der Landung und des kritischen Schwenkvorgangs der Rotoren ist das System extrem windanfällig. Das operationelle Limit für die Konversionsphase wird daher softwareseitig streng auf eine maximale Windgeschwindigkeit von $7\,\text{m/s}$ ($\approx 25\,\text{km/h}$) beschränkt.
+    \item \textbf{Schwebeflug und Transitionsphase (VTOL):} Während des vertikalen Starts, der Landung und des kritischen Schwenkvorgangs der Rotoren ist das System extrem windanfällig. 
+    Das operationelle Limit für die Konversionsphase wird daher softwareseitig streng auf eine maximale Windgeschwindigkeit von $7\,\text{m/s}$ ($\approx 25\,\text{km/h}$) beschränkt.
 \end{itemize}
 
 \subsection{Thermische Grenzen und Akku-Management}
 Das thermische Design der Avionik-Komponenten im Rumpf sowie das Energiemanagement der Lithium-Polymer-Akkus (LiPo) sind auf extreme Außentemperaturen (\textit{Outside Air Temperature}, OAT) ausgelegt:
 \begin{itemize}
-    \item \textbf{Untere Betriebsgrenze (Wintereinsatz):} Das System ist bis zu einer Mindesttemperatur von $-10^\circ\text{C}$ voll einsatzbereit. Um den chemischen Leistungsabfall der Antriebsakkus bei Frost zu verhindern, ist in Kapitel \ref{ch:electrical_energy} ein integriertes, thermisches Vorheiz- und Isolationskonzept zu implementieren.
-    \item \textbf{Obere Betriebsgrenze (Sommereinsatz):} Das thermische Limit wird auf $+40^\circ\text{C}$ festgesetzt. Die Gehäusestruktur muss so konstruiert werden, dass die Motorregler (ESCs) und der Flugsteuerungscomputer auch bei maximaler Leistungsaufnahme im Schwebeflug durch passive Kühlluftkanäle vor thermischer Überlastung geschützt sind.
+    \item \textbf{Untere Betriebsgrenze (Wintereinsatz):} Das Gesamtsystem ist bis zu einer Mindesttemperatur von $-10^\circ\text{C}$ am Startplatz (Boden) voll einsatzbereit. 
+                                                          Da die atmosphärische Umgebungstemperatur mit zunehmender Höhe sinkt, entspricht dies einer strukturellen und elektronischen Auslegungsgrenze von ca. $-35^\circ\text{C}$ auf der maximalen barometrischen Gipfelhöhe von 
+                                                          $4.000\,\text{m}$ MSL. Um den chemischen Leistungsabfall der Antriebsakkus sowie das Einfrieren der mechanischen Schwenk-Aktuatoren bei dieser extremen Höhentemperatur zuverlässig zu verhindern, 
+                                                          ist in Kapitel \ref{ch:electrical_energy} ein integriertes, thermodynamisches Vorheiz- und Isolationskonzept zu implementieren, welches die interne Rumpftemperatur durch die Abwärme der Leistungselektronik passiv stabilisiert.
+    \item \textbf{Obere Betriebsgrenze (Sommereinsatz):} Das thermische Limit wird auf $+40^\circ\text{C}$ festgesetzt. Die Gehäusestruktur muss so konstruiert werden, dass die Motorregler (ESCs) 
+                                                         und der Flugsteuerungscomputer auch bei maximaler Leistungsaufnahme im Schwebeflug durch passive Kühlluftkanäle vor thermischer Überlastung geschützt sind.
 \end{itemize}
 
 \subsection{Partikel-, Feuchtigkeits- und Vereisungsschutz}
 Für den Schutz gegen Umwelteinflüsse wird das Fluggerät nach industriellen Standards ausgelegt:
 \begin{itemize}
-    \item \textbf{IP-Zertifizierung:} Das gesamte Gehäuse, die Kabinenhaube sowie die Elektronikschächte werden nach dem Schutzgrad \textbf{IP54} konstruiert. Dies gewährleistet einen vollständigen Schutz gegen Staubablagerungen im Inneren sowie gegen Spritzwasser aus allen Richtungen. Ein sicherer Betrieb bei leichtem Nieseln oder alpinem Schneefall ist damit gewährleistet.
-    \item \textbf{Staub- und Asche-Resistenz:} Um Einsätze direkt in Katastrophengebieten (z.~B. Waldbrand-Asche oder staubige alpine Schotterbänke) zu ermöglichen, werden ausschließlich vollgekapselte Brushless-Motoren verwendet, um ein Blockieren der Lager zu verhindern.
-    \item \textbf{In-Flight Icing (Vereisung):} Um das Systemgewicht und die Systemkomplexität zu minimieren, wird auf eine aktive mechanische oder thermische Enteisung der Tragflächen verzichtet. Der Betrieb innerhalb bekannter, strukturell vereisender atmosphärischer Bedingungen ist operationell untersagt.
+    \item \textbf{IP-Zertifizierung:} Das gesamte Gehäuse, die Kabinenhaube sowie die Elektronikschächte werden nach dem Schutzgrad \textbf{IP54} konstruiert. 
+                                      Dies gewährleistet einen vollständigen Schutz gegen Staubablagerungen im Inneren sowie gegen Spritzwasser aus allen Richtungen. 
+                                      Ein sicherer Betrieb bei leichtem Nieseln oder alpinem Schneefall ist damit gewährleistet.
+    \item \textbf{Staub- und Asche-Resistenz:} Um Einsätze direkt in Katastrophengebieten (z.~B. Waldbrand-Asche oder staubige alpine Schotterbänke) zu ermöglichen, werden ausschließlich vollgekapselte Brushless-Motoren verwendet, 
+                                               um ein Blockieren der Lager zu verhindern.
+    \item \textbf{In-Flight Icing (Vereisung):} Um das Systemgewicht und die Systemkomplexität zu minimieren, wird auf eine aktive mechanische oder thermische Enteisung der Tragflächen verzichtet. 
+                                                Der Betrieb innerhalb bekannter, strukturell vereisender atmosphärischer Bedingungen ist operationell untersagt.
 \end{itemize}
 
 \subsection{Sichtbedingungen und SORA-konforme Wetterüberwachung}
 Da die Missionen im BVLOS-Modus durchgeführt werden, gelten für die Überwachung und Messung der meteorologischen Parameter folgende technische Rahmenbedingungen:
 \begin{itemize}
     \item \textbf{Mindestsichtweite:} Der Start des UAS ist an eine meteorologische Mindestsichtweite von $1.500\,\text{m}$ gebunden, um die Funktionsfähigkeit der optischen und thermischen Suchsensorik (Payload) im Zielgebiet zu gewährleisten.
-    \item \textbf{Sensorlose EKF-Windschätzung im Schwebeflug (SORA OSO \#23):} Gemäß den behördlichen Auflagen der Austro Control müssen die Wetterbedingungen für den Fernpiloten zu jedem Zeitpunkt messbar sein \cite{1177, 1179}. Um das Systemgewicht zu minimieren und mechanische Fehlerquellen zu eliminieren, verzichtet das UAS auf externe, bewegliche Windmessanlagen. Stattdessen nutzt die PX4-Firmware das Gesamtsystem als Sensor über einen integrierten \textit{Extended Kalman Filter} (EKF). 
+    \item \textbf{Sensorlose EKF-Windschätzung im Schwebeflug (SORA OSO \#23):} Gemäß den behördlichen Auflagen der Austro Control müssen die Wetterbedingungen für den Fernpiloten zu jedem Zeitpunkt messbar sein . 
+                                                                                Um das Systemgewicht zu minimieren und mechanische Fehlerquellen zu eliminieren, verzichtet das UAS auf externe, bewegliche Windmessanlagen. 
+                                                                                Stattdessen nutzt die PX4-Firmware das Gesamtsystem als Sensor über einen integrierten \textit{Extended Kalman Filter} (EKF). 
     
-    Beim vertikalen Aufstieg auf die Sicherheitshöhe registriert die Trägheitsmesseinheit (IMU) die windbedingte Abdrift. Um die Position autonom starr zu halten, muss sich das Fluggerät dezent gegen den Windvektor neigen. Aus dem bekannten Neigungswinkel und dem aktuellen Regler-Schuboutput (\textit{Thrust-to-Tilt-Mapping}) berechnet der EKF-Algorithmus in weniger als drei Sekunden die exakte Windgeschwindigkeit und Windrichtung in Echtzeit.
+    Beim vertikalen Aufstieg auf die Sicherheitshöhe registriert die Trägheitsmesseinheit (IMU) die windbedingte Abdrift. Um die Position autonom starr zu halten, muss sich das Fluggerät dezent gegen den Windvektor neigen. 
+    Aus dem bekannten Neigungswinkel und dem aktuellen Regler-Schuboutput (\textit{Thrust-to-Tilt-Mapping}) berechnet der EKF-Algorithmus in weniger als drei Sekunden die exakte Windgeschwindigkeit und Windrichtung in Echtzeit.
     
-    \item \textbf{Automatisierte Gegenwind-Ausrichtung (Transitions-Optimierung):} Das System nutzt die ermittelten EKF-Winddaten unmittelbar nach dem Aufstieg für eine aerodynamische Optimierung des Flugprofils. Vor der Initiierung der Transitionsphase giert (dreht) sich das UAS im Tricopter-Schwebeflug autonom so um die eigene Hochachse, dass die Flugzeugnase \textit{exakt in den Windvektor} zeigt. Schwenken die Tragflächenmotoren nun nach vorne, strömt die Luft die Tragflächen sofort linear von vorne an. Dieser künstlich induzierte Gegenwind generiert bereits im Stand einen signifikanten aerodynamischen Auftrieb. Dadurch wird das Durchsacken des Fluggeräts während der Konversion vollständig unterbunden, die Transitionszeit halbiert und die thermische sowie energetische Belastung der Antriebe massiv reduziert. Erst nach vollständiger Transition in den Fixed-Wing-Modus dreht der Autopilot auf den eigentlichen Zielkurs ab. Während des Streckenflugs wird der Windvektor kontinuierlich über die mathematische Vektordifferenz zwischen der GPS-Geschwindigkeit (\textit{Groundspeed}) und der Staurohrmessung (\textit{Airspeed}) aktualisiert und an die GCS übertragen \cite{1179}.
+    \item \textbf{Automatisierte Gegenwind-Ausrichtung (Transitions-Optimierung):} Das System nutzt die ermittelten EKF-Winddaten unmittelbar nach dem Aufstieg für eine aerodynamische Optimierung des Flugprofils. 
+                                                                                   Vor der Initiierung der Transitionsphase giert (dreht) sich das UAS im Tricopter-Schwebeflug autonom so um die eigene Hochachse, 
+                                                                                   dass die Flugzeugnase \textit{exakt in den Windvektor} zeigt. Schwenken die Tragflächenmotoren nun nach vorne, strömt die Luft die Tragflächen sofort linear von vorne an. 
+                                                                                   Dieser künstlich induzierte Gegenwind generiert bereits im Stand einen signifikanten aerodynamischen Auftrieb. 
+                                                                                   Dadurch wird das Durchsacken des Fluggeräts während der Konversion vollständig unterbunden, die Transitionszeit halbiert und die thermische sowie energetische Belastung 
+                                                                                   der Antriebe massiv reduziert. Erst nach vollständiger Transition in den Fixed-Wing-Modus dreht der Autopilot auf den eigentlichen Zielkurs ab. 
+                                                                                   Während des Streckenflugs wird der Windvektor kontinuierlich über die mathematische Vektordifferenz zwischen der GPS-Geschwindigkeit (\textit{Groundspeed}) 
+                                                                                   und der Staurohrmessung (\textit{Airspeed}) aktualisiert und an die GCS übertragen.
 \end{itemize}
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 
@@ -189,12 +236,18 @@ Da das geplante Einsatzprofil des UAS außerhalb der Sichtweite (\textit{Beyond 
 \subsection{Schritt \#2 \& \#3: Bodenrisiko-Prozess (Ground Risk Class)}
 Die Bestimmung des intrinsischen Bodenrisikos (\textit{iGRC}) basiert auf den physischen Dimensionen des Luftfahrzeugs und der zu erwartenden kinetischen Energie im Falle eines unkontrollierten Aufpralls. 
 \begin{itemize}
-    \item \textbf{Einsatzszenario und Fluggebiet:} Der primäre Betrieb des UAS erfolgt zur Vermissten- und Katastrophenaufklärung (z.~B. alpine Personensuche, Erkundung überfluteter oder teils zerstörter Infrastruktur) über \textit{dünn besiedeltem Gebiet}. Dieses ist durch vereinzelte Bebauung und das strikte Fehlen von Menschenansammlungen charakterisiert.
-    \item \textbf{Kinetische Energie und Abmessungen:} Mit einer maximalen strukturellen Dimension von ca. $3\,\text{m}$ und einer typischen kinetischen Energie von unter $34\,\text{kJ}$ im Reiseflug ergibt sich gemäß der Risikomatrix der Austro Control (\textit{SORA Guide 1.1\_05032026.pdf}, Abbildung 3) eine intrinsische Bodenrisikoklasse von:
+    \item \textbf{Einsatzszenario und Fluggebiet:} Der primäre Betrieb des UAS erfolgt zur Vermissten- und Katastrophenaufklärung (z.~B. alpine Personensuche, Erkundung überfluteter oder teils zerstörter Infrastruktur) 
+                                                   über \textit{dünn besiedeltem Gebiet}. Dieses ist durch vereinzelte Bebauung und das strikte Fehlen von Menschenansammlungen charakterisiert.
+    \item \textbf{Kinetische Energie und Abmessungen:} Mit einer maximalen strukturellen Dimension von ca. $3\,\text{m}$ und einer typischen kinetischen Energie von unter $34\,\text{kJ}$ 
+                                                       im Reiseflug ergibt sich gemäß der Risikomatrix der Austro Control (\textit{SORA Guide 1.1\_05032026.pdf}, Abbildung 3) eine intrinsische Bodenrisikoklasse von:
     \begin{equation}
         \text{iGRC} = 4
     \end{equation}
-    \item \textbf{Minderungsmaßnahmen für das Bodenrisiko (Mitigations):} Zur Reduzierung der endgültigen \textit{GRC} wird eine technische Barriere der Sequenz M2 (\textit{Effects of ground impact are reduced}) mit mittlerer Robustheit implementiert. Das UAS verfügt über ein integriertes, ballistisches Rettungsfallschirmsystem. Gekoppelt an die Auslösung des Fallschirms ist ein hocheffektiver, akustischer Warngeber (schrille Notfallsirene) sowie ein optisches Stroboskop-Blitzlicht. Diese Kombination warnt Einsatzkräfte und unbeteiligte Personen am Boden akustisch und visuell vor dem herabsinkenden Luftfahrzeug, wodurch das Verletzungsrisiko drastisch minimiert wird. Gemäß Abbildung 4 des Leitfadens gewährt diese Maßnahme einen Korrekturfaktor von $-1$.
+    \item \textbf{Minderungsmaßnahmen für das Bodenrisiko (Mitigations):} Zur Reduzierung der endgültigen \textit{GRC} wird eine technische Barriere der Sequenz M2 
+                                                                          (\textit{Effects of ground impact are reduced}) mit mittlerer Robustheit implementiert. Das UAS verfügt über ein integriertes, ballistisches Rettungsfallschirmsystem. 
+                                                                          Gekoppelt an die Auslösung des Fallschirms ist ein hocheffektiver, akustischer Warngeber (schrille Notfallsirene) sowie ein optisches Stroboskop-Blitzlicht. 
+                                                                          Diese Kombination warnt Einsatzkräfte und unbeteiligte Personen am Boden akustisch und visuell vor dem herabsinkenden Luftfahrzeug, 
+                                                                          wodurch das Verletzungsrisiko drastisch minimiert wird. Gemäß Abbildung 4 des Leitfadens gewährt diese Maßnahme einen Korrekturfaktor von $-1$.
     \item \textbf{Endgültige GRC:} Nach Anwendung der Minderungsmaßnahme ergibt sich die endgültige Bodenrisikoklasse zu:
     \begin{equation}
         \text{GRC}_{\text{final}} = \text{iGRC} - 1 = 3
@@ -204,19 +257,25 @@ Die Bestimmung des intrinsischen Bodenrisikos (\textit{iGRC}) basiert auf den ph
 \subsection{Schritt \#4 \& \#5: Luftrisiko-Prozess (Air Risk Class)}
 Aufgrund der flexiblen Einsatzstrukturen für das Bundesheer und zivile Rettungsorganisationen (Bergrettung) wird das Luftrisiko anhand von zwei Betriebsszenarien parallel bewertet, um maximale operationelle Flexibilität im TDD zu gewährleisten:
 \begin{itemize}
-    \item \textbf{Szenario A (Standard-Katastrophenflug):} Das UAS operiert in einer Standard-Einsatzhöhe von $250\,\text{m}$ ($\approx 820\,\text{ft}$) über Grund in unkontrolliertem Luftraum (Luftraumklasse G) über ländlichem bzw. alpinem Gebiet. Dies entspricht der Luftraumcharakteristik \textit{AEC 5} (\textit{OPS > 400 ft AGL in uncontrolled airspace over a rural area}) und führt zu einer initialen Luftrisikoklasse von \textbf{ARC-c}.
-    \item \textbf{Szenario B (Militärischer Sperrraum / Segregierter Luftraum):} Bei zeitkritischen Einsätzen oder koordinierten Großschadenslagen wird durch die Austro Control oder das Bundesheer ein temporäres Flugbeschränkungsgebiet (Sperrraum) eingerichtet. Das UAS operiert somit in einem vollständig segregierten Luftraum (\textit{AEC 12}). Dies senkt das Luftrisiko per Definition auf die niedrigste Stufe: \textbf{ARC-a}.
+    \item \textbf{Szenario A (Standard-Katastrophenflug):} Das UAS operiert in einer Standard-Einsatzhöhe von $250\,\text{m}$ ($\approx 820\,\text{ft}$) über Grund in unkontrolliertem Luftraum (Luftraumklasse G) über ländlichem bzw. alpinem Gebiet. 
+                                                           Dies entspricht der Luftraumcharakteristik \textit{AEC 5} (\textit{OPS > 400 ft AGL in uncontrolled airspace over a rural area}) und führt zu einer initialen Luftrisikoklasse von \textbf{ARC-c}.
+    \item \textbf{Szenario B (Militärischer Sperrraum / Segregierter Luftraum):} Bei zeitkritischen Einsätzen oder koordinierten Großschadenslagen wird durch die Austro Control oder das Bundesheer ein temporäres Flugbeschränkungsgebiet (Sperrraum) eingerichtet. 
+                                                                                 Das UAS operiert somit in einem vollständig segregierten Luftraum (\textit{AEC 12}). Dies senkt das Luftrisiko per Definition auf die niedrigste Stufe: \textbf{ARC-a}.
 \end{itemize}
 
 \subsection{Schritt \#6: Taktische Risikominderung (TMPR) und DAA-Konzept}
-Für den Flugbetrieb im ungesperrten Luftraum (\textit{Szenario A / ARC-c}) fordert die Austro Control zwingend ein System zur taktischen Risikominderung (\textit{Tactical Mitigation Performance Requirement}, TMPR), da der Fernpilot keine direkte Sichtverbindung zum Fluggerät hält. 
+Für den Flugbetrieb im ungesperrten Luftraum (\textit{Szenario A / ARC-c}) fordert die Austro Control zwingend ein System zur taktischen Risikominderung (\textit{Tactical Mitigation Performance Requirement}, TMPR), 
+da der Fernpilot keine direkte Sichtverbindung zum Fluggerät hält. 
 \begin{itemize}
     \item \textbf{Detect and Avoid (DAA) Architektur:} Das UAS wird softwareseitig (PX4-Autopilot-Firmware) und hardwareseitig mit einem kombinierten ADS-B- und FLARM-Empfänger ausgestattet. 
-    \item \textbf{Kollisionsvermeidungsschleife:} Nähert sich ein bemanntes Luftfahrzeug (z.~B. ein tieffliegender Rettungshubschrauber des ÖAMTC oder des Bundesheeres), empfängt die Drohne dessen Telemetriedaten live. Der PX4-Autopilot berechnet den Annäherungsvektor und leitet autonom ein defensives Ausweichmanöver ein (z.~B. sofortiger automatischer Sinkflug oder Kursänderung senkrecht zur Flugbahn des Helikopters), um das geltende Luftraum-Sicherheitsziel zu erfüllen.
+    \item \textbf{Kollisionsvermeidungsschleife:} Nähert sich ein bemanntes Luftfahrzeug (z.~B. ein tieffliegender Rettungshubschrauber des ÖAMTC oder des Bundesheeres), empfängt die Drohne dessen Telemetriedaten live. 
+                                                  Der PX4-Autopilot berechnet den Annäherungsvektor und leitet autonom ein defensives Ausweichmanöver ein (z.~B. sofortiger automatischer Sinkflug oder Kursänderung senkrecht zur Flugbahn des Helikopters), 
+                                                  um das geltende Luftraum-Sicherheitsziel zu erfüllen.
 \end{itemize}
 
 \subsection{Schritt \#7: Bestimmung des SAIL-Niveaus}
-Die Kombination aus der endgültigen Bodenrisikoklasse ($\text{GRC} = 3$) und der jeweiligen Luftrisikoklasse bestimmt das regulatorische Sicherheits- und Integritätsniveau (\textit{Specific Assurance and Integrity Level}, SAIL) gemäß Abbildung 7 des Leitfadens:
+Die Kombination aus der endgültigen Bodenrisikoklasse ($\text{GRC} = 3$) und der jeweiligen Luftrisikoklasse bestimmt das regulatorische Sicherheits- und Integritätsniveau (\textit{Specific Assurance and Integrity Level}, SAIL) 
+gemäß Abbildung 7 des Leitfadens:
 \begin{itemize}
     \item Im koordinierten Sperrraum (\textit{Szenario B / ARC-a}) resultiert der Betrieb in der Risikoklasse \textbf{SAIL I}.
     \item Im unkontrollierten Standard-Luftraum (\textit{Szenario A / ARC-c}) resultiert der Betrieb in der Risikoklasse \textbf{SAIL IV}.
@@ -224,9 +283,15 @@ Die Kombination aus der endgültigen Bodenrisikoklasse ($\text{GRC} = 3$) und de
 Um das System zukunftssicher und vollumfänglich kommerziell nutzbar auszulegen, wird die technische und softwareseitige Architektur dieses Technical Design Documents (TDD) konsequent auf die strengeren Anforderungen von \textbf{SAIL IV} hin dimensioniert.
 
 \subsection{Schritt \#9: Überlegungen zum angrenzenden Bereich (Enhanced Containment)}
-Da das Betriebsvolumen oberhalb von $120\,\text{m}$ ($400\,\text{ft}$) AGL liegt und das UAS ein potenzielles Abfluggewicht von über $25\,\text{kg}$ aufweist, fordert die Austro Control den Nachweis eines erweiterten Sicherheits-Containments (\textit{Enhanced Containment}). Es muss mathematisch und technisch nachgewiesen werden, dass die Wahrscheinlichkeit für ein unbeabsichtigtes Verlassen des Fluggebiets (\textit{Fly-Away}) kleiner als $10^{-4}$ pro Flugstunde ist.
+Da das Betriebsvolumen oberhalb von $120\,\text{m}$ ($400\,\text{ft}$) AGL liegt und das UAS ein potenzielles Abfluggewicht von über $25\,\text{kg}$ aufweist, 
+fordert die Austro Control den Nachweis eines erweiterten Sicherheits-Containments (\textit{Enhanced Containment}). Es muss mathematisch und technisch nachgewiesen werden, 
+dass die Wahrscheinlichkeit für ein unbeabsichtigtes Verlassen des Fluggebiets (\textit{Fly-Away}) kleiner als $10^{-4}$ pro Flugstunde ist.
 
 \begin{itemize}
-    \item \textbf{Unabhängiges Flight Termination System (FTS):} Neben den Software-Sicherheitsbarrieren im primären Pixhawk-Autopiloten wird ein hardwareseitig vollkommen autarkes und physisch getrenntes Notfall-Abschaltsystem (FTS) verbaut. Dieses System verfügt über eine eigene Stromversorgung und Sensorik.
-    \item \textbf{Ablauf bei Kontrollverlust:} Sollte der primäre Flugsteuerungscomputer blockieren, die Software einfrieren oder das vordefinierte Geofencing-Volumen (Risk Buffer) durchbrochen werden, greift das FTS ein. Es kappt augenblicklich und irreversibel die Stromzufuhr zu allen drei Brushless-Motoren (\textit{Hard Kill}) und schießt simultan das ballistische Rettungsfallschirmsystem inklusive der Notfallsirene heraus. Dadurch wird ein unkontrolliertes Einfliegen in angrenzende, potenziell dichter besiedelte Gebiete unter allen Umständen zuverlässig verhindert.
+    \item \textbf{Unabhängiges Flight Termination System (FTS):} Neben den Software-Sicherheitsbarrieren im primären Pixhawk-Autopiloten wird ein hardwareseitig vollkommen autarkes und physisch getrenntes Notfall-Abschaltsystem (FTS) verbaut. 
+                                                                 Dieses System verfügt über eine eigene Stromversorgung und Sensorik.
+    \item \textbf{Ablauf bei Kontrollverlust:} Sollte der primäre Flugsteuerungscomputer blockieren, die Software einfrieren oder das vordefinierte Geofencing-Volumen (Risk Buffer) durchbrochen werden, 
+                                               greift das FTS ein. Es kappt augenblicklich und irreversibel die Stromzufuhr zu allen drei Brushless-Motoren (\textit{Hard Kill}) 
+                                               und schießt simultan das ballistische Rettungsfallschirmsystem inklusive der Notfallsirene heraus. Dadurch wird ein unkontrolliertes Einfliegen in angrenzende, 
+                                               potenziell dichter besiedelte Gebiete unter allen Umständen zuverlässig verhindert.
 \end{itemize}
