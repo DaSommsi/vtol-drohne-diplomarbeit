@@ -6,6 +6,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{helvet} 
 \renewcommand{\familydefault}{\sfdefault} 
+\usepackage{siunitx}
 
 % --- Zeilenabstand & Mikrotypografie ---
 \usepackage{setspace}
@@ -42,6 +43,10 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{array} 
+
+% --- Für weitere Unterüberschriften ---
+\setcounter{secnumdepth}{3} % Nummerierung bis subsubsection aktivieren
+\setcounter{tocdepth}{3}    % subsubsection im Inhaltsverzeichnis anzeigen
 
 % --- Hyperref Konfiguration ---
 \usepackage{hyperref}
@@ -148,6 +153,7 @@ Dieses Dokument unterliegt einem kontrollierten Änderungsmanagement. Gemäß de
         \midrule
         0.1.1 & 16.06.2026 & Integration der redundanten C2-Link-Frequenzen ($868\,\text{MHz}$ / $2{,}4\,\text{GHz}$ / LTE), Ergänzung der STS-Fernpilotenkompetenzen, Spezifikation des Emergency Response Plans (ERP) sowie Korrektur des thermischen Höhenprofils. & D. Sommerer \\
         \bottomrule
+        
     \end{tabular}
     \label{tab:revision_history}
 \end{table}
@@ -201,6 +207,7 @@ Die in diesem Dokument getroffenen rechtlichen und operationellen Annahmen basie
     \textbf{BVLOS}  & Beyond Visual Line of Sight (Flug außerhalb der Sichtweite) \\
     \textbf{C2}     & Command and Control (Steuerungs- und Kontroll-Datenlink) \\
     \textbf{CFD}    & Computational Fluid Dynamics (Strömungssimulation) \\
+    \textbf{CFK}    & Carbonfaserverstärkter Kunststoff \\
     \textbf{COFDM}  & Coded Orthogonal Frequency Division Multiplexing (Verschlüsseltes Mehrkanal-Übertragungsverfahren) \\
     \textbf{CoG}    & Center of Gravity (Schwerpunkt) \\
     \textbf{EASA}   & European Union Aviation Safety Agency (Europäische Agentur für Flugsicherheit) \\
@@ -212,6 +219,7 @@ Die in diesem Dokument getroffenen rechtlichen und operationellen Annahmen basie
     \textbf{FHSS}   & Frequency Hopping Spread Spectrum (Frequenzsprung-Verfahren) \\
     \textbf{FTS}    & Flight Termination System (Unabhängiges Flugterminierungssystem) \\
     \textbf{GCS}    & Ground Control Station (Bodenstation) \\
+    \textbf{GFK}    & Glasfaserverstärkter Kunststoff \\
     \textbf{GRC}    & Ground Risk Class (Bodenrisikoklasse) \\
     \textbf{HMI}    & Human Machine Interface (Mensch-Maschine-Schnittstelle) \\
     \textbf{iGRC}   & Intrinsic Ground Risk Class (Intrinsische Bodenrisikoklasse) \\
