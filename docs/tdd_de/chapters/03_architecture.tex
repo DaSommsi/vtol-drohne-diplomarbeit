@@ -1,5 +1,89 @@
 ﻿\chapter{System Architecture \& High-Level Design}
 \label{ch:architecture}
+
+Dieses Kapitel definiert die übergeordnete Systemarchitektur sowie die strukturelle und funktionale Aufteilung des 
+Tri-Tilt-Rotor VTOL-Systems. Die hier beschriebene Verknüpfung der mechatronischen Baugruppen, Datenflüsse und Schnittstellen 
+bildet die technische Grundlage, 
+um die hohen Zuverlässigkeits- und Redundanzanforderungen der angestrebten SAIL-Zertifizierung physisch umzusetzen.
+
 \section{System Element Breakdown (Air Vehicle vs. GCS)}
+
+Dieser Abschnitt beschreibt die strukturelle Zerlegung des gesamten unbemannten Luftfahrzeugsystems (UAS) in seine 
+elementaren Hauptkomponenten. Um eine klare mechatronische Trennung zu gewährleisten, wird das Gesamtsystem primär in 
+das luftgestützte Segment (Air Vehicle) und das bodengestützte Segment (Ground Control Station, GCS) unterteilt. Die 
+hier definierte Gliederung stellt sicher, dass alle mechanischen, elektronischen und softwarebasierten Subsysteme des Tri-Tilt-Rotor 
+VTOL-Systems eindeutig zugewiesen und im Rahmen des Systementwurfs strukturiert integriert werden können.
+
+\subsection{Air Vehicle Breakdown}
+Das unbemannte Luftfahrzeug (\textit{Air Vehicle}) ist als hochmodulares, aerodynamisch optimiertes Tri-Tilt-Rotor VTOL-System in der 
+Gewichtsklasse von \SIrange{20}{30}{\kg} und einer nominellen Spannweite von ca. \SI{3.0}{\m} ausgeführt. Die tragende Primärstruktur 
+basiert auf einem extrem verwindungssteifen Vollcarbon-Skelett, welches von einer leichten, aber hochfesten Außenhaut aus CFK-Sandwichplatten 
+umschlossen wird. Um eine elektromagnetische Abschirmung der internen Avionik- und Antennensysteme (GNSS, C2-Datenlinks, Telemetrie) 
+zuverlässig zu verhindern, sind die Rumpfsegmente im Bereich der Empfangsanlagen selektiv aus glasfaserverstärktem Kunststoff (GFK-Sandwich) 
+gefertigt.
+
+\noindent Die primäre mechanische Struktur des Luftfahrzeugs unterteilt sich strukturell in die folgenden Hauptbaugruppen:
+
+\subsubsection{Fuselage Assembly (Rumpf- \& Monocoque-Struktur)}
+Der zentrale Rumpfkörper ist als geodätisches Monocoque aus flachen, hochsteifen Carbon-Sandwichplatten (bzw. GFK-Platten im Funkkorridor) 
+konstruiert. Diese facettierte Bauweise (Geometrie flacher Segmente) ermöglicht eine optimale Einleitung und Verteilung von Torsions- und 
+Biegekräften über die gesamte Außenhaut und maximiert zeitgleich das nutzbare Innenvolumen.
+\begin{itemize}
+    \item \textbf{Payload Bay (Nutzlastbucht):} Im vorderen Bugbereich befindet sich die dedizierte, strukturell verstärkte Aufhängung 
+    für das ca. \SI{1.0}{\kg} schwere EO/IR-Gimbal-System (kombinierte Optisch-/Infrarotsensorik).
+    \item \textbf{Retractable Landing Gear (Einziehbares Fahrwerk):} An der Rumpfunterseite sind ausfahrbare Stützbeine aus hochfesten 
+    Carbon-Rundrohren integriert. Diese dienen als Landegestell und werden während der vertikalen Start- und Landephase (\textit{Hover}) 
+    vollständig ausgefahren. Zur Minimierung des aerodynamischen Gesamtwiderstands im hocheffizienten Vorwärtsflug bei Reisegeschwindigkeiten 
+    von bis zu \SI{130}{\km\per\hour} werden die Stützen nach der Transitionsphase bündig in den Rumpf eingezogen.
+\end{itemize}
+
+\subsubsection{Wing Assembly \& High-Lift Systems (Tragflächenbaugruppe)}
+Das Tragflächen-Design orientiert sich bionisch an der hocheffizienten, schlanken Flügelgeometrie des Albatros (hohe 
+Streckung / \textit{Aspect Ratio}). Diese Geometrie minimiert den induzierten Widerstand an den Tragflächenenden im schnellen 
+Reiseflug fundamental, bietet jedoch in Kombination mit dem aktiven Klappensystem hervorragende Langsamflugeigenschaften für den 
+stationären Suchbetrieb.
+\begin{itemize}
+    \item \textbf{Modular Transport System (Flügelsteckung):} Um den logistischen Transport des \SI{3}{\m}-Fluggeräts im mobilen 
+    Katastrophenschutz- und Realeinsatz zu erleichtern, sind die Außenflügel über ein hochfestes, formschlüssiges Steckungssystem 
+    ausgeführt und werkzeugarm abmontierbar.
+    \item \textbf{Active Aerodynamics (Wölbklappen / Flaps):} An den Hinterkanten der Tragflächen befinden sich mechanische 
+    Klappensysteme (\textit{Flaps}), die im Fixed-Wing-Modus als aktive Aerodynamik zur präzisen Fluglagesteuerung dienen. 
+    Im extremen Langsamflug werden sie über digitale CAN-Servos nach unten gefahren (Wölbklappenfunktion), um die virtuelle 
+    Profilkrümmung zu erhöhen, maximalen Auftrieb zu generieren und einen aerodynamischen Strömungsabriss (\textit{Stall}) sicher zu 
+    verhindern.
+\end{itemize}
+
+\subsubsection{Empennage (T-Leitwerk \& Heckausleger)}
+Die aerodynamische Stabilisierung der Längs- und Hochachse im Vorwärtsflug wird über ein stabiles T-Leitwerk realisiert.
+\begin{itemize}
+    \item \textbf{Tail Boom (Heckrohr):} Die mechanische Kraftübertragung und strukturelle Anbindung zwischen dem Haupt-Rumpfmonocoque 
+    und der Heckbaugruppe erfolgt über ein groß dimensioniertes, torsionssteifes Carbon-Strukturrohr.
+    \item \textbf{Modular Tail Unit:} Zur Erreichung eines minimalen Packmaßes beim Transport ist das obere Leitwerkselement (die 
+    horizontale Dämpfungsfläche inklusive Höhenruder) über ein mechanisches Schnellverschlusssystem einfach vom vertikalen Seitenleitwerk 
+    demontierbar ausgeführt.
+\end{itemize}
+
+\subsubsection{Propulsion Integration \& Tilt-Mechanism (Antriebsaufhängungen)}
+Das Tri-Tilt-Rotor-Konzept kombiniert die mechanischen Vorteile eines Tricopters mit der Effizienz eines Starrflüglers über eine 
+asymmetrische Antriebsanordnung:
+\begin{itemize}
+    \item \textbf{Front Tilt-Gondeln (Vordere Schwenkantriebe):} Die zwei primären Schwenkmotoren sind an dedizierten Carbon-Auslegern 
+    an den Tragflächen befestigt. Die Triebwerksgondeln sind konstruktiv bewusst weit nach vorne gezogen (\textit{Forward Extension}). 
+    Diese räumliche Trennung entkoppelt den Propellerstrahl vollständig von der Flügelvorderkante, wodurch aerodynamische Interferenzen 
+    (schädliche Luftverwirbelungen an der Tragfläche) im Starrflügler-Reiseflug eliminiert werden.
+    \item \textbf{Rear Propulsion Unit (Heckmotor):} Der permanent horizontal ausgerichtete Heckmotor (der dritte Antrieb des Systems) 
+    ist am Ende des Carbon-Heckrohrs unterhalb des T-Leitwerks montiert. Zur Erzeugung eines maximalen Standschubs in der Start- und 
+    Schwebephase bei gleichzeitig kompaktem, strömungsgünstigem Durchmesser ist dieser Antrieb mit einem hocheffizienten 3-Blatt-Propeller 
+    ausgestattet.
+\end{itemize}
+
+\subsection{Ground Control Station Breakdown}
+%Physische Aufteilung des Bodensegments (Industrie-PC/Laptop mit HMI, 
+%Antennentracker, RC-Fernsteuerung für den manuellen Override und Funkmodule).
+
+\subsection{System Work Breakdown Structure (WBS)}
+%Ein grafisches Organigramm (Baumstruktur), welches das 
+%Gesamtsystem visuell in die einzelnen Luft- und Bodenkomponenten aufteilt.
+
 \section{Functional Architecture}
 \section{Physical Architecture \& Integration}
