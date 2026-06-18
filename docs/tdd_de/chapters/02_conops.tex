@@ -60,10 +60,14 @@ um das Fluggerät im Tricopter-Modus senkrecht und präzise am Startpunkt aufzus
 Über den physischen Steuererfassungskanal (RC-Fernsteuerung) kann der Fernpilot zu jedem Zeitpunkt der Mission per Override-Befehl die manuelle Kontrolle übernehmen. 
 Der Autopilot wechselt dabei verzögerungsfrei in einen assistierten Flugmodus (\textit{Position Hold} bzw. \textit{Altitude Flight Mode}), um abrupte Steuereingaben aerodynamisch zu dämpfen.
 
-Für den Fall einer kritischen Systemstörung während des Fluges (z.~B. mechanischer Defekt des hinteren VTOL-Aktuators oder Ausfall des Heckmotors) sind zwei gestaffelte Sicherheitsverfahren implementiert:
+Für den Fall einer kritischen Systemstörung oder äußeren Einwirkung während des Fluges sind gestaffelte Sicherheitsverfahren implementiert:
 \begin{enumerate}
-    \item \textbf{Contingency-Verfahren (Bauchlandung):} Ist ein sicherer Schwebeflug zur vertikalen Landung technisch ausgeschlossen, ist der Rumpf strukturell so ausgelegt, 
-                                                         dass eine kontrollierte Gleitlandung als Segelflugzeug (Bauchlandung) auf einer freien Freifläche durchgeführt werden kann.
+    \item \textbf{GPS-Ausfall (Koppelnavigation):} Bei einem plötzlichen Verlust oder gezielten Jamming des Satellitensignals schaltet das System verzögerungsfrei in ein autonomes 
+                                                   Koppelnavigations-Notverfahren (\textit{Dead Reckoning}). Die Positionsbestimmung erfolgt hierbei über die Fusion der hochfrequenten Beschleunigungsdaten 
+                                                   der internen IMU mit den statischen und dynamischen Druckdaten des Staurohrs (Airspeed-Messung). Das System bricht die Mission nicht ab, 
+                                                   sondern navigiert auf Basis des geschätzten Wind- und Kursvektors autonom zurück zur Home-Position.
+    \item \textbf{Contingency-Verfahren (Bauchlandung):} Ist ein sicherer Schwebeflug zur vertikalen Landung technisch ausgeschlossen (z.~B. mechanischer Defekt des hinteren VTOL-Aktuators), 
+                                                         ist der Rumpf strukturell so ausgelegt, dass eine kontrollierte Gleitlandung als Segelflugzeug (Bauchlandung) auf einer freien Freifläche durchgeführt werden kann.
     \item \textbf{Emergency-Verfahren (Rettungssystem):} Bei einem vollständigen Kontrollverlust oder totalem Avionikausfall dient ein integrierter, ballistischer Rettungsfallschirm als finale Sicherheitsbarriere, 
                                                          um die kinetische Aufschlagsenergie des Gesamtsystems zu minimieren.
 \end{enumerate}
@@ -220,7 +224,8 @@ Da die Missionen im BVLOS-Modus durchgeführt werden, gelten für die Überwachu
                                                                                    Dadurch wird das Durchsacken des Fluggeräts während der Konversion vollständig unterbunden, die Transitionszeit halbiert und die thermische sowie energetische Belastung 
                                                                                    der Antriebe massiv reduziert. Erst nach vollständiger Transition in den Fixed-Wing-Modus dreht der Autopilot auf den eigentlichen Zielkurs ab. 
                                                                                    Während des Streckenflugs wird der Windvektor kontinuierlich über die mathematische Vektordifferenz zwischen der GPS-Geschwindigkeit (\textit{Groundspeed}) 
-                                                                                   und der Staurohrmessung (\textit{Airspeed}) aktualisiert und an die GCS übertragen.
+                                                                                   und der Staurohrmessung (\textit{Airspeed}) aktualisiert und an die GCS übertragen. Bei einem kritischen GPS-Signalverlust dient dieser fusionierte Windvektor 
+                                                                                   als primäre Rechengrundlage für das autonome Koppelnavigations-Notverfahren.
 \end{itemize}
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 
