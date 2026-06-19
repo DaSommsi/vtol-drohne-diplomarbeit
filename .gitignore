@@ -7,6 +7,8 @@
 *.fdb_latexmk
 *.fls
 *.out
+*.bbl
+*.blg
 
 # --- ROS 2 / C++ / Build Ordner ---
 install/
