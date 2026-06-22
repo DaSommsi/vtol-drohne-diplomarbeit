@@ -1,7 +1,7 @@
 ﻿\chapter{Concept of Operations (CONOPS)}
 \label{ch:conops}
 
-Dieses Kapitel beschreibt das operative Betriebskonzept (CONOPS) des unbemannten Luftfahrzeugsystems (UAS) gemäß den Vorgaben der EASA und der Austro Control. 
+Dieses Kapitel beschreibt das operative Betriebskonzept (CONOPS) des unbemannten Luftfahrzeugsystems (UAS) gemäß den Vorgaben der EASA \cite{easa_rules} und der Austro Control \cite{austrocontrol_sora}. 
 Die hier definierten Betriebsparameter bilden die fundamentale Grundlage für die Bestimmung der Risikoklassen im SORA-Prozess.
 
 \section{Betriebsszenarien}
@@ -18,8 +18,8 @@ Die Flugphasen teilen sich in ein hocheffizientes, teils autonomes Multirotor-St
 \subsection{Vorflugkontrolle und Missionsplanung (Pre-Flight)}
 Vor dem Systemstart führt der Operator eine standardisierte digitale Vorflugkontrolle an der GCS durch. 
 Über das grafische User Interface (HMI) der Bodenstation wird das vordefinierte Such- oder Katastrophengebiet via Polygon-Auswahl auf einer digitalen Karte festgelegt. 
-Die Flugwegpunkte, die einzuhaltenden Sicherheitsgrenzen (Geofencing) sowie die autonomen Suchraster werden vom System berechnet und über die primäre 
-und sekundäre Datenverbindung (Command \& Control, C2) an den Autopiloten (Pixhawk 6X / PX4-Firmware) übertragen. 
+Die Flugwegpunkte, die einzuhaltenden Sicherheitsgrenzen (Geofencing) sowie die autonomen Suchraster werden vom System berechnet und gemäß den harmonisierten Betriebsvorgaben \cite{easa_rules} über die primäre und 
+sekundäre Datenverbindung (Command \& Control, C2) an den Autopiloten (Pixhawk 6X / PX4-Firmware) übertragen. 
 
 Die C2-Architektur ist hierfür redundant und frequenzgetrennt aufgebaut: Der primäre C2-Datenlink arbeitet im schmalbandigen $868\,\text{MHz}$-Band mittels 
 Frequenzhoppingsverfahren (FHSS) bei einer Sendeleistung von $500\,\text{mW}$, was eine maximale Durchdringung und Unempfindlichkeit gegen alpine Abschattungen gewährleistet. 
@@ -60,10 +60,14 @@ um das Fluggerät im Tricopter-Modus senkrecht und präzise am Startpunkt aufzus
 Über den physischen Steuererfassungskanal (RC-Fernsteuerung) kann der Fernpilot zu jedem Zeitpunkt der Mission per Override-Befehl die manuelle Kontrolle übernehmen. 
 Der Autopilot wechselt dabei verzögerungsfrei in einen assistierten Flugmodus (\textit{Position Hold} bzw. \textit{Altitude Flight Mode}), um abrupte Steuereingaben aerodynamisch zu dämpfen.
 
-Für den Fall einer kritischen Systemstörung während des Fluges (z.~B. mechanischer Defekt des hinteren VTOL-Aktuators oder Ausfall des Heckmotors) sind zwei gestaffelte Sicherheitsverfahren implementiert:
+Für den Fall einer kritischen Systemstörung oder äußeren Einwirkung während des Fluges sind gestaffelte Sicherheitsverfahren implementiert:
 \begin{enumerate}
-    \item \textbf{Contingency-Verfahren (Bauchlandung):} Ist ein sicherer Schwebeflug zur vertikalen Landung technisch ausgeschlossen, ist der Rumpf strukturell so ausgelegt, 
-                                                         dass eine kontrollierte Gleitlandung als Segelflugzeug (Bauchlandung) auf einer freien Freifläche durchgeführt werden kann.
+    \item \textbf{GPS-Ausfall (Koppelnavigation):} Bei einem plötzlichen Verlust oder gezielten Jamming des Satellitensignals schaltet das System verzögerungsfrei in ein autonomes 
+                                                   Koppelnavigations-Notverfahren (\textit{Dead Reckoning}). Die Positionsbestimmung erfolgt hierbei über die Fusion der hochfrequenten Beschleunigungsdaten 
+                                                   der internen IMU mit den statischen und dynamischen Druckdaten des Staurohrs (Airspeed-Messung). Das System bricht die Mission nicht ab, 
+                                                   sondern navigiert auf Basis des geschätzten Wind- und Kursvektors autonom zurück zur Home-Position.
+    \item \textbf{Contingency-Verfahren (Bauchlandung):} Ist ein sicherer Schwebeflug zur vertikalen Landung technisch ausgeschlossen (z.~B. mechanischer Defekt des hinteren VTOL-Aktuators), 
+                                                         ist der Rumpf strukturell so ausgelegt, dass eine kontrollierte Gleitlandung als Segelflugzeug (Bauchlandung) auf einer freien Freifläche durchgeführt werden kann.
     \item \textbf{Emergency-Verfahren (Rettungssystem):} Bei einem vollständigen Kontrollverlust oder totalem Avionikausfall dient ein integrierter, ballistischer Rettungsfallschirm als finale Sicherheitsbarriere, 
                                                          um die kinetische Aufschlagsenergie des Gesamtsystems zu minimieren.
 \end{enumerate}
@@ -84,7 +88,8 @@ akustische $105\,\text{dB}$ Piezo-Notfallsirene (Hörbarkeit von mindestens $500
 \label{sec:flight_envelopes}
 
 In diesem Abschnitt werden die strukturellen, aerodynamischen und missionsspezifischen Betriebsgrenzen (\textit{Flight Envelopes}) des Gesamtsystems definiert. 
-Da sich das UAS in der Entwurfsphase befindet, gelten die aufgeführten Parameter als vorläufige technische Zielspezifikationen und dienen als verbindliche Auslegungsgrundlage für die Struktur-, Festigkeits- und Antriebsberechnungen.
+Da sich das UAS in der Entwurfsphase befindet, gelten die aufgeführten Parameter als vorläufige technische Zielspezifikationen gemäß den AMC-Vorgaben \cite{easa_rules} und dienen als verbindliche Auslegungsgrundlage
+
 
 \subsection{Aerodynamisches und strukturelles Geschwindigkeitsspektrum}
 Das Geschwindigkeitsspektrum ($V$-Spektrum) wird so dimensioniert, dass sowohl ein hocheffizienter Reiseflug als auch eine sichere Langsamflugphase im Suchgebiet gewährleistet sind:
@@ -220,7 +225,8 @@ Da die Missionen im BVLOS-Modus durchgeführt werden, gelten für die Überwachu
                                                                                    Dadurch wird das Durchsacken des Fluggeräts während der Konversion vollständig unterbunden, die Transitionszeit halbiert und die thermische sowie energetische Belastung 
                                                                                    der Antriebe massiv reduziert. Erst nach vollständiger Transition in den Fixed-Wing-Modus dreht der Autopilot auf den eigentlichen Zielkurs ab. 
                                                                                    Während des Streckenflugs wird der Windvektor kontinuierlich über die mathematische Vektordifferenz zwischen der GPS-Geschwindigkeit (\textit{Groundspeed}) 
-                                                                                   und der Staurohrmessung (\textit{Airspeed}) aktualisiert und an die GCS übertragen.
+                                                                                   und der Staurohrmessung (\textit{Airspeed}) aktualisiert und an die GCS übertragen. Bei einem kritischen GPS-Signalverlust dient dieser fusionierte Windvektor 
+                                                                                   als primäre Rechengrundlage für das autonome Koppelnavigations-Notverfahren.
 \end{itemize}
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 
@@ -231,7 +237,7 @@ Da die Missionen im BVLOS-Modus durchgeführt werden, gelten für die Überwachu
 
 Da das geplante Einsatzprofil des UAS außerhalb der Sichtweite (\textit{Beyond Visual Line of Sight}, BVLOS) stattfindet und die angestrebte Startmasse (MTOM) die regulatorische Grenze der 
 \textit{Open}-Kategorie überschreitet, wird der Betrieb in die \textit{Specific}-Kategorie eingestuft. Die luftfahrtrechtliche Betriebsbewilligung wird über das standardisierte 
-\textit{Specific Operations Risk Assessment} (SORA) gemäß dem aktuellen Leitfaden der Austro Control (\textit{SORA Guide 1.1\_05032026.pdf}) hergeleitet.
+\textit{Specific Operations Risk Assessment} (SORA) gemäß dem aktuellen Leitfaden der Austro Control \cite{austrocontrol_sora} hergeleitet.
 
 \subsection{Schritt \#2 \& \#3: Bodenrisiko-Prozess (Ground Risk Class)}
 Die Bestimmung des intrinsischen Bodenrisikos (\textit{iGRC}) basiert auf den physischen Dimensionen des Luftfahrzeugs und der zu erwartenden kinetischen Energie im Falle eines unkontrollierten Aufpralls. 
@@ -239,7 +245,7 @@ Die Bestimmung des intrinsischen Bodenrisikos (\textit{iGRC}) basiert auf den ph
     \item \textbf{Einsatzszenario und Fluggebiet:} Der primäre Betrieb des UAS erfolgt zur Vermissten- und Katastrophenaufklärung (z.~B. alpine Personensuche, Erkundung überfluteter oder teils zerstörter Infrastruktur) 
                                                    über \textit{dünn besiedeltem Gebiet}. Dieses ist durch vereinzelte Bebauung und das strikte Fehlen von Menschenansammlungen charakterisiert.
     \item \textbf{Kinetische Energie und Abmessungen:} Mit einer maximalen strukturellen Dimension von ca. $3\,\text{m}$ und einer typischen kinetischen Energie von unter $34\,\text{kJ}$ 
-                                                       im Reiseflug ergibt sich gemäß der Risikomatrix der Austro Control (\textit{SORA Guide 1.1\_05032026.pdf}, Abbildung 3) eine intrinsische Bodenrisikoklasse von:
+                                                       im Reiseflug ergibt sich gemäß der Risikomatrix der Austro Control (\cite{austrocontrol_sora}, Abbildung 3) eine intrinsische Bodenrisikoklasse von:
     \begin{equation}
         \text{iGRC} = 4
     \end{equation}
@@ -247,7 +253,7 @@ Die Bestimmung des intrinsischen Bodenrisikos (\textit{iGRC}) basiert auf den ph
                                                                           (\textit{Effects of ground impact are reduced}) mit mittlerer Robustheit implementiert. Das UAS verfügt über ein integriertes, ballistisches Rettungsfallschirmsystem. 
                                                                           Gekoppelt an die Auslösung des Fallschirms ist ein hocheffektiver, akustischer Warngeber (schrille Notfallsirene) sowie ein optisches Stroboskop-Blitzlicht. 
                                                                           Diese Kombination warnt Einsatzkräfte und unbeteiligte Personen am Boden akustisch und visuell vor dem herabsinkenden Luftfahrzeug, 
-                                                                          wodurch das Verletzungsrisiko drastisch minimiert wird. Gemäß Abbildung 4 des Leitfadens gewährt diese Maßnahme einen Korrekturfaktor von $-1$.
+                                                                          wodurch das Verletzungsrisiko drastisch minimiert wird. Gemäß Abbildung 4 des Leitfadens \cite{austrocontrol_sora} gewährt diese Maßnahme einen Korrekturfaktor von $-1$.
     \item \textbf{Endgültige GRC:} Nach Anwendung der Minderungsmaßnahme ergibt sich die endgültige Bodenrisikoklasse zu:
     \begin{equation}
         \text{GRC}_{\text{final}} = \text{iGRC} - 1 = 3
@@ -274,8 +280,8 @@ da der Fernpilot keine direkte Sichtverbindung zum Fluggerät hält.
 \end{itemize}
 
 \subsection{Schritt \#7: Bestimmung des SAIL-Niveaus}
-Die Kombination aus der endgültigen Bodenrisikoklasse ($\text{GRC} = 3$) und der jeweiligen Luftrisikoklasse bestimmt das regulatorische Sicherheits- und Integritätsniveau (\textit{Specific Assurance and Integrity Level}, SAIL) 
-gemäß Abbildung 7 des Leitfadens:
+Die Kombination aus der endgültigen Bodenrisikoklasse ($\text{GRC} = 3$) und der jeweiligen Luftrisikoklasse bestimmt das regulatorische Sicherheits- 
+und Integritätsniveau (\textit{Specific Assurance and Integrity Level}, SAIL) gemäß der Risikomatrix der Behörde \cite{austrocontrol_sora} gemäß der Abbildung 7:
 \begin{itemize}
     \item Im koordinierten Sperrraum (\textit{Szenario B / ARC-a}) resultiert der Betrieb in der Risikoklasse \textbf{SAIL I}.
     \item Im unkontrollierten Standard-Luftraum (\textit{Szenario A / ARC-c}) resultiert der Betrieb in der Risikoklasse \textbf{SAIL IV}.
@@ -284,8 +290,8 @@ Um das System zukunftssicher und vollumfänglich kommerziell nutzbar auszulegen,
 
 \subsection{Schritt \#9: Überlegungen zum angrenzenden Bereich (Enhanced Containment)}
 Da das Betriebsvolumen oberhalb von $120\,\text{m}$ ($400\,\text{ft}$) AGL liegt und das UAS ein potenzielles Abfluggewicht von über $25\,\text{kg}$ aufweist, 
-fordert die Austro Control den Nachweis eines erweiterten Sicherheits-Containments (\textit{Enhanced Containment}). Es muss mathematisch und technisch nachgewiesen werden, 
-dass die Wahrscheinlichkeit für ein unbeabsichtigtes Verlassen des Fluggebiets (\textit{Fly-Away}) kleiner als $10^{-4}$ pro Flugstunde ist.
+fordert die Austro Control den Nachweis eines erweiterten Sicherheits-Containments (\textit{Enhanced Containment}) nach dem SORA-Regelwerk \cite{austrocontrol_sora}. 
+Es muss mathematisch und technisch nachgewiesen werden, dass die Wahrscheinlichkeit für ein unbeabsichtigtes Verlassen des Fluggebiets (\textit{Fly-Away}) kleiner als $10^{-4}$ pro Flugstunde ist.
 
 \begin{itemize}
     \item \textbf{Unabhängiges Flight Termination System (FTS):} Neben den Software-Sicherheitsbarrieren im primären Pixhawk-Autopiloten wird ein hardwareseitig vollkommen autarkes und physisch getrenntes Notfall-Abschaltsystem (FTS) verbaut. 

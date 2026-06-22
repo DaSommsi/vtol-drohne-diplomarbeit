@@ -55,6 +55,109 @@ Das Tri-Tilt-Rotor-Konzept kombiniert die mechanischen Vorteile eines Tricopters
 \subsection{System Work Breakdown Structure (WBS)}
 %Ein grafisches Organigramm (Baumstruktur), welches das 
 %Gesamtsystem visuell in die einzelnen Luft- und Bodenkomponenten aufteilt.
+\newpage
+% ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+% ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 
 
 \section{Functional Architecture}
+\label{sec:functional_architecture}
+
+Die funktionale Architektur beschreibt die logische Aufteilung des Gesamtsystems in abstrakte Funktionsblöcke sowie die zwischen ihnen fließenden Informations- und Datenströme. 
+Diese hersteller- und softwareunabhängige Betrachtung stellt sicher, dass alle für den autonomen SAIL-IV-Betrieb notwendigen Systemfähigkeiten logisch abgebildet und hierarchisch geordnet sind.
+
+\subsection{Core Functional Blocks (Zentrale Funktionsblöcke)}
+Das Gesamtsystem wird funktional in vier primäre Steuerungs- und Verarbeitungsschleifen unterteilt, die deterministisch miteinander interagieren:
+
+\begin{itemize}
+    \item \textbf{Flight Guidance \& Control Loop (Flugführung und Regelung):} Dieser Block ist für die physische Stabilisierung des VTOL-Systems verantwortlich. 
+                                                                               Er transformiert übergeordnete Wegpunktbefehle in Echtzeit-Aktuatorsignale für die drei Brushless-Motoren und die zwei vorderen Schwenk-Servos. 
+                                                                               Hier laufen die hochfrequenten Regelkreise (PID-Schleifen) für die Nick-, Roll- und Gierachse.
+    \subsection{Navigation \& State Estimation (Zustandsschätzung):} Dieser Funktionsblock berechnet die aktuelle Position, Geschwindigkeit und Ausrichtung des UAS im Raum. 
+                                                                     Durch die Fusion diverser Sensordaten wird hier auch die logische Umschaltung auf das Koppelnavigations-Verfahren (\textit{Dead Reckoning}) bei einem GNSS-Ausfall gesteuert.
+    \item \textbf{Mission \& Swarm Management (Missions- und Schwarmsteuerung):} Die übergeordnete logische Instanz an Bord. Dieser Block verwaltet das autonome Suchraster, berechnet die dezentrale Sektorenaufteilung 
+                                                                                 im Schwarmbetrieb und generiert die dynamischen Wegpunkte, die an die Flugführung übergeben werden.
+    \item \textbf{Perception \& Data Processing (Nutzlastverarbeitung):} Dieser Block steuert die Stabilisierung des EO/IR-Gimbals und verarbeitet den thermischen sowie optischen Videostrom über die bordeigene Edge-AI, 
+                                                                         um detektierte Personenkoordinaten direkt an das Missionsmanagement zu melden.
+\end{itemize}
+
+\subsection{Data Flows and Interface Matrix (Datenflüsse)}
+Die Interaktion zwischen dem luftgestützten Segment (Air Vehicle) und dem bodengestützten Segment (GCS) sowie die internen Datenströme werden über drei logische Hauptkanäle abgewickelt:
+
+\begin{enumerate}
+    \item \textbf{Command \& Control (C2) Uplink:} Kritische Steuerbefehle, Missions-Polygone, manuelle Overrides und System-Scharfschaltungen fließen mit niedriger Latenz von der GCS zum Missionsmanagement des Air Vehicles.
+    \item \textbf{Telemetry \& Status Downlink:} Das Luftfahrzeug sendet kontinuierlich hochfrequente Zustandsdaten (GPS-Koordinaten bzw. Koppelnavigations-Schätzwerte, Akkuspannungen, thermische Systemzustände und System-IDs) 
+                                                 zurück an die Bodenstation zur Darstellung auf dem HMI.
+    \item \textbf{Payload \& Target Uplink/Downlink:} Der komprimierte Echtzeit-Videostrom der Wärmebildkamera sowie die von der KI generierten Zielkoordinaten (\textit{Target Points}) 
+                                                      werden prioritär an die GCS übermittelt, um von dort direkt in das militärische Führungssystem (ATAK) eingespeist zu werden.
+\end{enumerate}
+
+Die folgende tabellarische Übersicht definiert die logische Schnittstellen-Matrix der funktionalen Architektur:
+
+\begin{table}[h!]
+    \centering
+    \caption{Logische Schnittstellenmatrix der funktionalen Systemarchitektur}
+    \vspace{0.2cm}
+    \begin{tabular}{p{3.5cm} p{3.5cm} p{4.0cm} p{3.0cm}}
+        \toprule
+        \textbf{Quelle (Block)} & \textbf{Ziel (Block)} & \textbf{Dateninhalt / Signal} & \textbf{Charakteristik} \\
+        \midrule
+        GCS (HMI) & Mission Management & Missions-Polygon \& Wegpunkte & Synchron / Einmalig \\
+        Navigation (EKF) & Flight Control & $3\text{D}$-Lage- und Positionsdaten & Asynchron / $50\,\text{Hz}$ \\
+        Airspeed-Sensor & Navigation (EKF) & Dynamischer Staudruck (Luftgeschwindigkeit) & Asynchron / $20\,\text{Hz}$ \\
+        Perception (Edge-AI) & Mission Management & Personendetektion (MGRS/WGS84) & Event-basiert \\
+        Mission Management & GCS (HMI) & Schwarm-Status \& System-ID & Periodisch / $5\,\text{Hz}$ \\
+        Flight Control & Aktuatoren (Motoren) & PWM / CAN-Drehzahlbefehle & Deterministisch / $400\,\text{Hz}$ \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:functional_interfaces}
+\end{table}
+
+% ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+% ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
 \section{Physical Architecture \& Integration}
+\label{sec:physical_architecture}
+
+Die physische Architektur beschreibt die reale elektronische Hardware-Infrastruktur des Tri-Tilt-Rotor VTOL-Systems sowie deren mechanische und elektrische Integration in die CFK-Zelle. 
+Der Fokus liegt hierbei auf der physischen Umsetzung der Redundanz- und Sicherheitsvorgaben zur Erfüllung der SAIL-IV-Kriterien.
+
+\subsection{Dual-Computing Hardware Stack}
+Zur Erfüllung der deterministischen Echtzeitanforderungen einerseits und der rechenintensiven Algorithmen zur Missions- und Schwarmsteuerung andererseits ist die Systemarchitektur konsequent als 
+\textit{Dual-Computing Hardware Stack} ausgeführt. Die Trennung der logischen Ebenen minimiert das Risiko eines vollständigen Kontrollverlusts (Catastrophic Event) und bildet die Grundlage für die behördliche SAIL-IV-Zulassung.
+
+\begin{enumerate}
+    \item \textbf{Flight Management Unit (FMU):} Als primärer Flugsteuerungscomputer wird ein \textit{Pixhawk 6X} eingesetzt, welcher dem offenen Open-Hardware-Standard \textit{FMUv6X} entspricht. 
+                                                 Er verfügt über einen STM32H753-Hauptprozessor mit einer Taktfrequenz von $480\,\text{MHz}$ sowie über dreifach redundante, intern mechanisch gedämpfte und 
+                                                 temperaturstabilisierte Trägheitsmesssensoren (IMUs). Die auf dem Pixhawk ausgeführte Echtzeit-Firmware (PX4 Autopilot) ist ausschließlich für die hochfrequente Flugstabilisierung, 
+                                                 die PID-Regelschleifen der Schwenkmechanik sowie das Notfall-Sicherheitsmanagement zuständig.
+    \item \textbf{Companion Computer (CC):} Die übergeordnete Recheninstanz wird durch ein \textit{NVIDIA Jetson Orin Nano} System-on-Module (SoM) realisiert. Ausgestattet mit einer NVIDIA Ampere GPU und 1024 CUDA-Kernen übernimmt dieser 
+                                            Einplatzencomputer die rechenintensive Auswertung des Wärmebild-Videostroms mittels Edge-AI, die Ausführung des dezentralen Schwarm-Protokolls im dezentralen \textit{Robot Operating System 2} (ROS 2) 
+                                            sowie die globale Flugwegplanung.
+\end{enumerate}
+
+\subsection{Inter-Component Data Interfaces (Bordschnittstellen)}
+Die physische Integration der Avionikkomponenten basiert auf einer strikten Trennung nach Bandbreitenbedarf, Latenzkritikalität und Störsicherheit. Das physische Kommunikationsnetzwerk im Rumpf gliedert sich in drei Hauptbusse:
+
+\begin{itemize}
+    \item \textbf{High-Speed Flight Controller-Companion Computer Bridge (Ethernet):} Die datenintensive Verknüpfung zwischen dem Pixhawk 6X und dem NVIDIA Jetson Orin Nano erfolgt über eine physische \textit{100Base-T-Ethernet-Verbindung}. 
+                                                                                      Über dieses dedizierte Netzwerk werden die hochfrequenten Telemetriedaten sowie die übergeordneten ROS~2-Navigationsbefehle mittels des paketbasierten 
+                                                                                      \textit{MAVLink-Protokolls} (bzw. \textit{micro-XRCE-DDS}) mit minimaler Latenz und maximaler Durchsatzrate übertragen.
+    \item \textbf{Deterministic Actuator \& Sensor Bus (CAN-Bus / Cyphal):} Kritische externe Peripheriegeräte und Sensoren werden nicht über störanfällige analoge Leitungen, sondern über eine digitale \textit{CAN-Bus-Topologie} 
+                                                                            nach dem Industriestandard \textit{UAVCAN / Cyphal} an den Pixhawk 6X angebunden. Dies betrifft das digitale Differenzdruck-Staurohr (Airspeed-Sensor) 
+                                                                            sowie die elektronischen Motorregler (ESCs) der drei Hauptantriebe. Der CAN-Bus garantiert eine differentielle, extrem elektromagnetisch abgeschirmte 
+                                                                            Signalübertragung über die gesamte Tragflächenspannweite von $3\,\text{m}$.
+    \item \textbf{Payload-Schnittstellen (USB 3.0 / CSI):} Die elektrooptische und infrarote Sensorik (EO/IR-Gimbal-Kamera) ist direkt an die Hochgeschwindigkeitsschnittstellen des Companion Computers angebunden. 
+                                                           Der unkomprimierte, thermische Videostrom wird über eine \textit{USB 3.0} Schnittstelle übertragen, um der bordeigenen Edge-AI-Software eine latenzfreie Objektklassifizierung zu ermöglichen. 
+                                                           Das sekundäre optische \textit{Optical-Flow-Modul} inklusive LiDAR-Höhenmesser zur GPS-denied Stabilisierung ist über eine serielle \textit{UART}-Schnittstelle zur 
+                                                           direkten Positionskorrektur mit der FMU verbunden.
+\end{itemize}
+
+\subsection{Power Distribution \& Electrical Isolation (Stromversorgung)}
+Die elektrische Architektur ist auf maximale Ausfallsicherheit und die Eliminierung von elektromagnetischen Interferenzen (EMI) ausgelegt. Die Stromversorgung teilt sich in zwei physikalisch isolierte Segmente auf:
+
+Das primäre \textit{Power Distribution Board} (PDB) wird direkt aus dem Hochvolt-Lithium-Polymer-Hauptakku (LiPo) gespeist und verteilt die elektrische Energie ungeregelt an die drei stromintensiven Brushless-Motoren sowie 
+die digitalen Hochleistungs-Schwenkservos der Tilt-Mechanik. Um zu verhindern, dass die massiven Spannungseinbrüche während des vertikalen VTOL-Aufstiegs oder induzierte Gegenströme der Motoren die sensiblen Recheneinheiten beschädigen, 
+ist der komplette Avionik-Strang galvanisch vom Antriebsstrang getrennt.
+
+Der Pixhawk 6X sowie der NVIDIA Jetson Companion Computer werden über zwei redundante, präzise geregelte \textit{Power Modules} (BECs) mit einer konstanten Gleichspannung versorgt. 
+Sämtliche Signalleitungen zu den Motorreglern (ESCs) sind über integrierte Optokoppler physisch isoliert, wodurch Erdschleifen und hochfrequente Störsignale der Leistungselektronik im SAIL-IV-Flugbetrieb wirksam unterbunden werden.

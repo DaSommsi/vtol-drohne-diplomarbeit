@@ -117,7 +117,7 @@
         {\footnotesize\color{AerospaceNavy}\uppercase{\textbf{Kooperation \& Zertifizierung}}\par}
         \vspace{0.1cm}
         Österreichisches Bundesheer\par
-        Austro Control --- SORA SAIL II/III\par
+        Austro Control --- SORA SAIL IV\par
         
         \vspace{0.6cm} % Symmetrischer Abstand auf der rechten Seite
         
@@ -162,12 +162,9 @@ Dieses Dokument unterliegt einem kontrollierten Änderungsmanagement. Gemäß de
 
 \newpage
 \section*{Referenzierte Leitfäden und Behörden-Dokumente}
-Die in diesem Dokument getroffenen rechtlichen und operationellen Annahmen basieren auf den folgenden behördlichen Grundlagen in ihrer jeweils aktuellen Fassung:
+Die in diesem Dokument getroffenen rechtlichen und operationellen Annahmen basieren auf den behördlichen Grundlagen der Austro Control \cite{austrocontrol_sora} sowie den harmonisierten Vorgaben der EASA \cite{easa_rules}.
 
-\begin{itemize}
-    \item \textbf{Austro Control GmbH:} \textit{Specific Operations Risk Assessment (SORA) Leitfaden und weiterführende Informationen}, Version 1.1, Stand 03/2026.
-    \item \textbf{EASA Easy Access Rules:} \textit{Acceptable Means of Compliance (AMC) und Guidance Material (GM) zu Artikel 11 der Durchführungsverordnung (EU) 2019/947}.
-\end{itemize}
+\nocite{austrocontrol_sora, easa_rules}
 \newpage
 
 % --- Verzeichnisse ---
@@ -258,5 +255,9 @@ Die in diesem Dokument getroffenen rechtlichen und operationellen Annahmen basie
 \include{chapters/11_gcs_hmi}
 \include{chapters/12_manufacturing}
 \include{chapters/13_testing}
+
+\bibliographystyle{IEEEtran} % Zitierstil für Ingenieurswissenschaften
+\bibliography{references}    % Verweist auf deine references.bib
+\end{document}
 
 \end{document}
