@@ -1,5 +1,391 @@
 ﻿\chapter{Avionics \& Flight Control System (FCS)}
 \label{ch:avionics_fcs}
+
+\section{Avionics Hardware Architecture}
+\label{sec:avionics_hardware_architecture}
+
+\subsection{Flight Management Unit (FMU) \texorpdfstring{\&}{\&} Baseboard Configuration}
+\label{sec:fmu_baseboard_config}
+
+Das elektronische Herzstück der Avionik-Infrastruktur bildet eine modulare Kombination aus der Flight Management Unit (FMU) und einem robusten Trägerboard 
+(v2B Standard Baseboard). Diese physische Trennung von Rechen- und Schnittstellen-Ebene ermöglicht eine hohe Wartungsfreundlichkeit sowie eine 
+gezielte Optimierung der Signalwege und Vibrationsentkopplung.
+
+\subsubsection{Processor and Sensor Redundancy}
+\label{sec:processor_sensor_redundancy}
+
+Zur Erfüllung der anspruchsvollen Ausfallsicherheitskriterien innerhalb der behördlichen SAIL-IV-Zulassung basiert 
+der eingesetzte Autopilot \textit{Pixhawk 6X} (Revision 8) auf einer strikt partitionierten, hardwareseitig redundanten Architektur 
+nach dem etablierten Open-Hardware-Standard \textit{FMUv6X} \cite{holybro_pixhawk6x}. Die konsequente Trennung der 
+Rechen- und Sensordomänen eliminiert \textit{Single Points of Failure} (SPoF) auf Systemebene.
+
+Die Rechenlast wird deterministisch auf zwei autarke Mikroprozessoren aufgeteilt:
+\begin{itemize}
+    \item \textbf{FMU-Hauptprozessor:} Ein \textit{STM32H753} 32-Bit ARM Cortex-M7 Prozessor ($480\,\text{MHz}$, $2\,\text{MB}$ Flash, $1\,\text{MB}$ RAM). 
+                                       Dieser Primärprozessor verarbeitet die hochfrequenten Lageregelkreise (PID-Schleifen) des Tri-Tilt-Rotor-Mischprofils 
+                                       und führt das POSIX-konforme Echtzeitbetriebssystem \textit{PX4 Autopilot} (Soll-Release $\ge 1.14.3$) aus.
+    \item \textbf{IO-Koprozessor:} Ein physisch separierter \textit{STM32F103} 32-Bit ARM Cortex-M3 Prozessor ($72\,\text{MHz}$, $64\,\text{KB}$ SRAM). 
+                                   Dieser überwacht im Hintergrund die Ausgänge und fungiert im Falle eines kritischen Software-Freezes des Hauptprozessors 
+                                   als Hardware-Failsafe-Ebene zur zyklischen Aufrechterhaltung von Notfall-Steuerbefehlen wie dem Fallschirmauswurf.
+\end{itemize}
+
+Die Erfassung der Raumlage- und Beschleunigungsdaten erfolgt über ein dreifach redundantes Sensor-Domänen-Konzept (\textit{Triple Redundancy Domains}). 
+In der Revision 8 sind drei identische \textit{ICM-45686} Trägheitsmessheiten (IMUs) integriert, welche lineare Beschleunigungen von bis zu $\pm32\,\text{g}$ 
+fehlerfrei abbilden. Diese Sensoren nutzen die patentierte \textit{BalancedGyro\texttrademark}-Technologie, um temperatur- und vibrationsbedingte 
+Drehratendriften inhärent zu kompensieren. 
+
+Jede dieser drei IMU-Domänen ist auf Chipebene vollständig isoliert: Sie wird über mathematisch autarke SPI-Busse ausgelesen und von einer dedizierten, 
+voneinander getrennten Spannungsregelung (\textit{Power Control}) versorgt. Ein elektrischer Kurzschluss innerhalb einer Sensorplatine führt somit nicht 
+zum Gesamtausfall des Navigationssystems. Zur Erhöhung der Zuverlässigkeit bei der barometrischen Höhenbestimmung wird zudem eine diversitäre Sensorbestückung, 
+bestehend aus einem \textit{ICP20100} und einem \textit{BMP388} Barometer, eingesetzt, was softwarebasierte Gleichreaktionsfehler wirksam ausschließt.
+
+Ein kritischer Aspekt für den alpinen Einsatz bei extremen Wetterwechseln ist das integrierte thermische und mechanische Dämpfungskonzept des IMU-Boards.
+ Die Sensoren befinden sich auf einer im Rumpf schwimmend gelagerten Ebene, die mittels eines custom-formulierten, hochfesten Isolationsmaterials mechanisch entkoppelt ist. 
+ Dieses Material verschiebt die Resonanzfrequenz der Dämpfung gezielt in ein höheres Frequenzspektrum, wodurch hochfrequente Störvibrationen der 
+ drei Brushless-Hauptmotoren vollständig gefiltert werden. Über integrierte Heizwiderstände wird das IMU-Board zudem elektronisch permanent auf einer 
+ konstanten Betriebstemperatur gehalten. Dies eliminiert mathematische Sensor-Drifts beim schnellen Aufstieg in kalte Luftschichten im Hochgebirge und garantiert 
+ die präzise Stützung des Extended Kalman Filters (EKF).
+
+\subsubsection{Pinout and Port Assignment Matrix}
+
+\subsection{Companion Computer (CC) Integration}
+\label{sec:companion_computer_integration}
+
+Die Bewältigung rechenintensiver Missionsaufgaben, die über die deterministischen Steuerungsaufgaben der FMU hinausgehen, insbesondere die Echtzeit-Bildverarbeitung der EO/IR-Nutzlast sowie die Schwarmkommunikation, 
+erfolgt über einen dedizierten Companion Computer. Das System nutzt hierfür das \textit{NVIDIA Jetson Orin Nano Developer Kit} \cite{nvidia_jetson_orin_nano}. Diese Plattform kombiniert ein leistungsstarkes System-on-Module (SoM) 
+mit einem vielseitigen Referenz-Trägerboard (\textit{Reference Carrier Board}). Mit einer KI-Rechenleistung von bis zu $40\,\text{TOPS}$ (bzw. bis zu $67\,\text{TOPS}$ bei optimierten generativen KI-Pipelines) 
+bei einer konfigurierbaren Leistungsaufnahme von \SI{7}{\W} bis \SI{15}{\W} stellt das Modul die primäre Recheneinheit für Missionsalgorithmen innerhalb der \SI{25}{\kg}-Flugklasse dar.
+
+\subsubsection{Carrier Board Interfaces}
+\label{sec:carrier_board_interfaces}
+
+Das integrierte \textit{Reference Carrier Board} bricht die hochpoligen Signalleitungen des SoMs auf standardisierte Schnittstellen für die Drohnenperipherie auf. 
+Die physischen Anschlüsse des Companion Computers sind gemäß Hardwarespezifikation \cite{nvidia_jetson_orin_nano} wie folgt definiert:
+\begin{itemize}
+    \item \textbf{Gigabit Ethernet (1x GbE):} Bildet das primäre High-Speed-Netzwerk. Es dient als Kommunikationsbrücke zur FMU via \textit{micro-XRCE-DDS} im ROS~2-Netzwerk sowie zur direkten netzwerkbasierten Anbindung der EO/IR-Gimbal-Nutzlast 
+                                              (Raptor / NightHawk / Seeker) zum Empfang der H.264/H.265-RTSP-Videostreams.
+    \item \textbf{USB 3.2 Gen 2 (4x Type-A):} Bereitstellung von vier hochbandbreitigen Anschlüssen für sekundäre Peripheriegeräte (z.~B. externe Speichermedien oder Backup-Kamerasysteme).
+    \item \textbf{MIPI CSI-2 (2x 22-pin):} Kamera-Schnittstellen für die direkte, latenzfreie Anbindung von Sekundärsensorik.
+    \item \textbf{Erweiterungsanschlüsse (40-pin Header):} Stellt serielle Schnittstellen (UART, SPI, I2C, GPIO) zur Verfügung, die als physikalische Redundanzleitungen (Backup-Bridge) zur FMU geschaltet sind.
+\end{itemize}
+
+\subsubsection{Thermal Management and Cooling}
+\label{sec:thermal_management_cooling}
+
+Aufgrund der kompakten Abmessungen des Gesamtsystems (\SI{103}{\mm} $\times$ \SI{90.5}{\mm} $\times$ \SI{34.77}{\mm} inkl. Trägerboard) und einer maximalen Verlustleistung von \SI{15}{\W} erfordert die Systemintegration ein aktives thermisches Management, 
+um ein thermisch bedingtes Herabsetzen der Taktfrequenz (\textit{Thermal Throttling}) bei hohen Umgebungstemperaturen zu verhindern.
+
+Das Kühlungskonzept basiert auf einer interdisziplinären Schnittstelle zwischen Avionik-Hardware und Strukturmechanik. Das Trägerboard stellt hierfür einen dedizierten \SI{4}{-pin} Lüfteranschluss (\textit{4-pin fan header}) bereit. 
+Über diesen Anschluss wird ein passgenauer, kugelgelagerter Aktivlüfter über ein PWM-Signal direkt vom Jetson-Betriebssystem in Abhängigkeit von den internen Kern-Temperaturen dynamisch geregelt. 
+Die maschinenbauliche Integration des Kühlkörpers erfolgt über das strukturelle Rumpfdesign (siehe Kapitel~X), welches über aerodynamische Einlassöffnungen (\textit{NACA-Ducts}) einen kontinuierlichen Fahrtwindstrom direkt über die Aluminium-Kühlrippen leitet.
+
+
+\subsection{Mission Periphery \texorpdfstring{\&}{\&} Sensor Integration}
+\label{sec:mission_periphery_sensor_integration}
+
+Die Erfassung von Umgebungs- und Positionsdaten basiert auf einer hochredundanten Sensorarchitektur. Alle missions- und navigationskritischen Peripheriemodule sind so in das Gesamtsystem integriert, 
+dass ein Sensorausfall durch hard- und softwareseitige Failover-Ebenen vollständig kompensiert wird.
+
+\subsubsection{Primary and Secondary GNSS Architecture (Dual-Sensor Setup)}
+\label{sec:gnss_architecture}
+
+Zur physischen Umsetzung der SAIL-IV-Sicherheitsanforderungen verfügt das UAS über ein duales, geometrisch und technologisch getrenntes Satellitennavigationssystem (GNSS). 
+Diese Redundanz unterbindet den Totalverlust der absoluten Positionsdaten bei Hardwaredefekten oder lokalen Signalstörungen (z.~B. Abschattungen im alpinen Raum).
+
+\begin{itemize}
+    \item \textbf{Primäres GNSS (Holybro M10 GPS):} Dieses Modul basiert auf dem \textit{u-blox M10}-Chipsatz und ist über eine standardisierte 10-pin JST-GH Verbindung direkt an den \textit{GPS1}-Port 
+                                                    des Pixhawk 6X Baseboards angeschlossen \cite{holybro_m10_gps}. Es dient im Normalbetrieb als primäre Quelle für die dreidimensionale Positionsbestimmung. 
+                                                    Zudem beinhaltet das Gehäuse ein digitales \textit{IST8310}-Magnetometer, welches über den I2C-Bus die absolute Ausrichtung (Kompasskurs) des Luftfahrzeugs liefert.
+    \item \textbf{Sekundäres GNSS (Holybro H-RTK F9P Rover 2nd GPS):} Als redundante Ebene fungiert ein hocheffizienter Multiband-Empfänger auf Basis des \textit{u-blox ZED-F9P}-Chipsatzes, welcher am \textit{GPS2}-Port der FMU angebunden ist 
+                                                                      \cite{holybro_hrtk_f9p}. Durch die simultane Auswertung der Frequenzbänder L1, L2 und L5 bietet dieser Empfänger eine extrem hohe Störfestigkeit gegen Mehrwegeeffekte. 
+                                                                      Bei aktiver Anbindung an eine RTK-Bodenstation über den C2-Datenlink liefert das System eine zentimetergenaue Echtzeit-Positionspräzision.
+\end{itemize}
+
+Die PX4-Autopilot-Software fusioniert die Datenströme beider GNSS-Empfänger permanent im Extended Kalman Filter (EKF) über einen dualen \textit{GPS-Blending-Algorithmus}. 
+Die Gewichtung der Positionsdaten erfolgt dynamisch auf Basis der aktuellen Signalqualität (Sichtbare Satelliten, HDOP/VDOP-Werte). Weicht ein Sensor aufgrund eines Defekts oder externer Störeinflüsse mathematisch vom Erwartungshorizont ab, 
+wird er vom EKF isoliert. Das System führt die Navigation ohne transiente Fluglagestörungen rein auf Basis des verbleibenden Empfängers fort.
+
+\subsubsection{Electro-Optical / Infrared (EO/IR) Gimbal Payload}
+\label{sec:eo_ir_gimbal_payload}
+
+Die primäre Sensorik zur Durchführung der Such-, Rettungs- und Aufklärungsmissionen besteht aus einem kreiselstabilisierten, multi-spektralen EO/IR-Kamerasystem an der Bugspitze des Rumpfmonocoques. 
+Um maximale Flexibilität hinsichtlich der Beschaffungslogistik, potenzieller Sponsoring-Vereinbarungen oder eines harten Budget-Limits von maximal \SI{5000}{\text{€}} zu gewährleisten, nutzt das UAS ein modulares Payload-Konzept. 
+Die mechanischen Aufhängungen, die Spannungsversorgung (Wide Voltage Input) sowie die softwareseitigen Kommunikationsprotokolle sind universell ausgelegt. 
+
+Die primäre Signalübertragung der Videostreams erfolgt netzwerkbasiert über die Ethernet-Infrastruktur direkt an das \textit{NVIDIA Jetson Orin Nano Developer Kit}. Die Videodaten werden onboard als hochkomprimierte RTSP-Streams 
+(Real-Time Streaming Protocol) bereitgestellt und direkt in die gängigen KI-Inferenz-Pipelines (z.~B. YOLO-Architekturen zur Personendetektion) eingespeist. Die Steuerung erfolgt hybrid: Während die inertiale Kompensation von Flugbewegungen 
+intern über das Gimbal gelöst wird, werden autonome Objektverfolgungsbefehle (\textit{Autonomous Object Tracking}) über das ROS~2-Netzwerk des Companion Computers an das System übermittelt.
+
+Zur Realisierung dieses modularen Ansatzes sind drei Hardwarereferenzen spezifiziert:
+
+\begin{enumerate}
+    \item \textbf{High-End-Klasse (Referenzmodell: NextVision RAPTOR):} Diese Konfiguration stellt das technologische Maximum für den High-Speed-Transitionsflug dar. Bei einer Masse von $640\,\text{g}$ kombiniert das System 
+                                                                        einen kontinuierlichen 80-fach-Gesamtzoom ($40\times$ optisch, $2\times$ digital) mit einem hochauflösenden, ungekühlten HD-Thermalsensor ($1280 \times 720$ Pixel) \cite{nextvision_raptor}.
+                                                                         Die keilförmige Aero-Geometrie minimiert den parasitären Luftwiderstand im Fixed-Wing-Reiseflug. Dieses Modell ist primär für eine akademische Leihgabe (\textit{Loan Agreement}) 
+                                                                         über das Österreichische Bundesheer vorgesehen.
+    \item \textbf{Militärische Kaufklasse (Referenzmodell: NextVision NIGHTHAWK2-UZ):} Dieses System fungiert als voll operationale und gewichtsoptimierte Alternative. Mit einer Masse von lediglich $320\,\text{g}$ entlastet dieses Modul 
+                                                                                       die Avionik-Massenbilanz signifikant und bietet bei kompakter zylindrischer Bauform ($90 \times 120\,\text{mm}$) einen 40-fachen Gesamtzoom sowie denselben 
+                                                                                       HD-Wärmebildkanal ($1280 \times 720$ Pixel) wie das High-End-Modell \cite{nextvision_nighthawk}. Die softwareseitige API bleibt innerhalb des NextVision-Ökosystems identisch.
+    \item \textbf{Wirtschaftliche Kaufklasse (Referenzmodell: Foxtech Seeker EO \& Ranging AI):} Dieses System bildet die primäre, kommerziell direkt beschaffbare Stufe innerhalb des definierten Budgetrahmens ($\approx \SI{3900}{\text{€}}$) \cite{foxtech_seeker}. 
+                                                                                                 Das System nutzt ein innovatives, nicht-orthogonales 3-Achsen-Gimbal, das sich eng an die Sensoreinheit schmiegt. Dies garantiert eine geringe Stirnfläche 
+                                                                                                 und exzellente Aerodynamik ohne das typische Schütteln klassischer Kugel-Gimbals bei hohen Reisegeschwindigkeiten. Die Sensorik verfügt über ein duales Sichtfeld
+                                                                                                  (\textit{Dual Field of View}) mit einer Weitwinkel- und einer 30-fach-Hybridzoom-Kamera ($10\times$ optisch). Ein integrierter Laser-Entfernungsmesser 
+                                                                                                  (\textit{Laser Rangefinder}) liefert zudem in Echtzeit die exakten Distanzdaten und globalen Zielkoordinaten direkt an das On-Screen-Display (OSD) 
+                                                                                                  und den Jetson-Companion-Computer, unterstützt durch eine on-board AI-Mehrzielerkennung für Fußgänger und Fahrzeuge.
+\end{enumerate}
+
+\begin{table}[h!]
+    \centering
+    \caption{Vergleichende Trade-Off-Matrix der modularen EO/IR-Gimbal-Optionen}
+    \vspace{0.2cm}
+    \begin{tabular}{p{3.8cm} p{2.8cm} p{2.8cm} p{2.8cm}}
+        \toprule
+        \textbf{Parameter} & \textbf{NextVision RAPTOR} & \textbf{NextVision NIGHTHAWK2} & \textbf{Foxtech Seeker AI} \\
+        \midrule
+        \textbf{Masse} & $\SI{640}{\g}$ & $\SI{320}{\g}$ & $\approx \SI{800}{\g}$ \\
+        \textbf{Aero-Geometrie} & Keilform (Exzellent) & Zylindrisch (Gut) & Nicht-orthogonal (Gut) \\
+        \textbf{EO-Spezifikation} & $80\times$ Gesamt-Zoom & $40\times$ Gesamt-Zoom & 2K, $30\times$ Hybrid-Zoom \\
+        \textbf{Infrarot (IR)} & $1280 \times 720$ Pixel (HD) & $1280 \times 720$ Pixel (HD) & Optional \\
+        \textbf{Positionsermittlung} & Software-Raycasting & Software-Raycasting & Hardware Laser Rangefinder \\
+        \textbf{Marktpreis (ca.)} & $> \SI{10000}{\text{€}}$ (Leihe) & $\approx \SI{8000}{\text{€}}$ (Kauf) & $\approx \SI{3900}{\text{€}}$ (Kauf) \\
+        \textbf{SAIL-IV Eignung} & Uneingeschränkt & Uneingeschränkt & Voll operational \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:gimbal_trade_off}
+\end{table}
+
+\subsubsection{Optical Flow, LiDAR Rangefinder \texorpdfstring{\&}{\&} Vision-Based Navigation Stack}
+\label{sec:navigation_failsafe_stack}
+
+Zur Gewährleistung der primären Systemsicherheit innerhalb der behördlichen SAIL-IV-Zulassung verfügt das UAS über eine mehrstufige, redundante Navigations- 
+und Driftkompensationsebene. Dieses kombinierte Sensor- und Softwaresystem dient als Ausfallschutz (\textit{Failsafe}) bei einem transienten oder permanenten 
+Verlust des GNSS-Signals (z.~B. durch Signalabschattung oder gezieltes Jamming im alpinen Einsatzraum). Die Architektur ist hierarchisch nach Flughöhen gestaffelt 
+und partitioniert die Rechenlast zwischen der deterministischen Flugsteuerungsebene (Pixhawk 6X) und dem übergeordneten Companion Computer 
+(\textit{NVIDIA Jetson Orin Nano Developer Kit}) \cite{nvidia_jetson_orin_nano}.
+
+Fällt das primäre Dual-GNSS-Signal in großer Höhe ($\SI{400}{\m}$ bis $\SI{4000}{\m}$ über Grund) aus, schaltet der Autopilot primär in den Modus der Koppelnavigation 
+(\textit{Dead Reckoning}). Da die on-board integrierten, dreifach redundanten IMUs (Typ: \textit{InvenSense ICM-45686}) aufgrund mathematischer Integrationsfehler 
+einer zeitlichen Positionsdrift von ca. $1\,\%$ bis $2\,\%$ der zurückgelegten Wegstrecke unterliegen, wird eine sensorische Stützung über den Companion Computer realisiert:
+
+\begin{itemize}
+    \item \textbf{Optischer Kartenabgleich (Map Matching / VIO):} Der \textit{NVIDIA Jetson Orin Nano} greift parallel zur KI-Inferenz auf den digitalen 4K-Videostrom 
+                                                                der primären EO/IR-Nutzlast zu. Mittels Algorithmen zur \textit{Visual Inertial Odometry} (VIO) und lokal 
+                                                                hinterlegten, georeferenzierten Satellitenbildern gleicht das System markante topografische Merkmale 
+                                                                (z.~B. Bergkämme, Flussläufe oder Waldgrenzen) mit der Karte ab. Die hieraus ermittelten Positionskorrekturen 
+                                                                werden in Echtzeit über die Ethernet-Infrastruktur an die FMU übermittelt, wodurch die Langzeitdrift der 
+                                                                IMUs vollständig kompensiert wird. Die absolute Orientierung im Raum wird dabei kontinuierlich über das 
+                                                                digitale Magnetometer (\textit{IST8310}) und die barometrische Höhe (\textit{BMP388}) gestützt.
+\end{itemize}
+
+Für den Übergang in den Schwebeflug sowie die anschließende autonome Vertikallandung unter GNSS-Verlust greift das UAS ab einer mittleren und bodennahen Flughöhe auf 
+dedizierte Unterbodensensoren zurück:
+
+\begin{itemize}
+    \item \textbf{Eindimensionaler LiDAR-Entfernungsmesser (LightWare SF11/C):} Ab einer Höhe von \SI{120}{\m} über Grund erfasst der transienten-resistente 
+                                                                                Infrarot-Laser-Entfernungsmesser präzise die wahre Höhe über Grund 
+                                                                                (\textit{Altitude Above Ground Level} -- AGL) \cite{lightware_sf11c}. Der Sensor ist über 
+                                                                                eine serielle UART-Schnittstelle direkt an das Pixhawk-Baseboard angebunden und liefert 
+                                                                                mit einer Update-Rate von $\SI{20}{\Hz}$ driftfreie Höhendaten, die unbeeinflusst von 
+                                                                                alpinen Luftdruckschwankungen sind.
+    \item \textbf{Optischer Flusssensor (ARK Flow Modul):} Unterschreitet das Luftfahrzeug im Sinkflug eine Höhe von \SI{25}{\m}, klinkt sich das auf dem 
+                                                           \textit{PMW3901}-Chipsatz basierende \textit{ARK Flow}-Modul ein \cite{ark_flow}. Der Sensor erfasst die 
+                                                           horizontale Verschiebung von Bodenstrukturen mit hoher Frequenz. Die Datenübertragung erfolgt störsicher 
+                                                           über das \textit{DroneCAN}-Protokoll via CAN-Bus. Dies ermöglicht es dem Extended Kalman Filter (EKF) des Autopiloten, 
+                                                           jegliche windbedingte Horizontal-Drift im Schwebeflug ohne Satellitenverbindung vollständig zu eliminieren.
+\end{itemize}
+
+Das Zusammenspiel dieser Sensorkette sichert im SAIL-IV-Szenario ein kontrolliertes Abbremsen aus dem Vorwärtsflug, das Einleiten eines stabilen Schwebeflugs sowie eine 
+zentimetergenaue, autonome Vertikallandung am Notlandeplatz.
+
+\begin{table}[h!]
+    \centering
+    \caption{Sensoreinsatz und Redundanzstufen bei GNSS-Ausfall nach Flughöhe}
+    \vspace{0.2cm}
+    \begin{tabular}{p{3.2cm} p{4.2cm} p{4.6cm}}
+        \toprule
+        \textbf{Flughöhenbereich} & \textbf{Aktive Sensorik (Hardware)} & \textbf{Navigationsmethode / Failsafe} \\
+        \midrule
+        $\SI{400}{\m} - \SI{4000}{\m}$ & Redundante IMUs, Magnetometer, Baro, Suchkamera & IMU-Koppelnavigation gestützt durch optischen KI-Kartenabgleich (\textit{Jetson Orin Nano}) \\
+        $\SI{25}{\m} - \SI{120}{\m}$ & Redundante IMUs, LiDAR (\textit{LightWare SF11/C}) & Höhengestützte IMU-Navigation zur Einleitung des autonomen Sinkflugs \\
+        $\SI{0}{\m} - \SI{25}{\m}$ & LiDAR, Optical Flow (\textit{ARK Flow}) & \textit{Optical-Flow-Position-Hold} zur vollständigen Drifteliminierung bei der VTOL-Landung \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:navigation_failsafe_stages}
+\end{table}
+
+\subsubsection{Digital Airspeed Sensor (Pitot-Static Tube)}
+\label{sec:airspeed_sensor}
+
+Für den sicheren Starrflügler-Reiseflug sowie die kritischen Phasen des Transitionsflugs verfügt das UAS über ein digitales Differenzdrucksensorsystem zur Ermittlung der Eigengeschwindigkeit gegenüber der Luft (\textit{Indicated Airspeed} -- IAS). 
+Das System nutzt das \textit{PT60 Pitot-Statik-Rohr} in Kombination mit dem industriellen \textit{Holybro High Precision DroneCAN Airspeed Sensor} \cite{holybro_dlvr_airspeed}. Mit einer Gesamtmasse von lediglich $38{,}3\,\text{g}$ (inkl. Verschlauchung) 
+wird das Prandtl-Rohr an der äußersten Spitze der Rumpfnase positioniert, um Messfehler durch den \textit{Propwash} der Rotoren im Schwebeflug auszuschließen.
+
+Die sensorische Erfassung und dezentrale Verarbeitung basiert auf folgenden Spezifikationen:
+\begin{itemize}
+    \item \textbf{DLVR-L10D Sensor mit CoBeam-Technologie:} Der Differenzdruckwandler nutzt die \textit{CoBeam\texttrademark}-Architektur von AllSensors. Diese garantiert eine Messgenauigkeit von besser als $1\,\%$ ($<1{,}0\,\%$ Fehler) über das 
+                                                            gesamte Temperaturspektrum von $\SI{-20}{\celsius}$ bis $\SI{+85}{\celsius}$ und eliminiert thermische Nullpunktdriffts im alpinen Einsatz vollständig. Der Messbereich reicht bis \SI{2500}{\Pa}, 
+                                                            was Fluggeschwindigkeiten bis $\SI{226.8}{\km/h}$ abbildet.
+    \item \textbf{Dezentraler DroneCAN-Knoten:} Das Modul verfügt über einen dedizierten \textit{STM32G473CE} Mikroprozessor ($\SI{170}{\MHz}$, $512\,\text{KB}$ Flash) und führt die \textit{AP-Periph DroneCAN}-Firmware aus. 
+                                                Die Druckwerte werden direkt auf Chipebene gefiltert und digital über das störsichere \textit{DroneCAN}-Protokoll (CAN-Bus) an die FMU übertragen. Dies schließt elektromagnetische Interferenzen (EMV) 
+                                                durch benachbarte Hochstrom-Antriebskabel systembedingt aus.
+\end{itemize}
+
+Der Extended Kalman Filter (EKF) des Autopiloten fusioniert die hochfrequenten Airspeed-Daten permanent mit dem dualen GNSS-System zur Echtzeitberechnung des globalen Windvektors. Die Flugregelung nutzt diese Datenbasis als primäres 
+Schaltkriterium im \textit{Conversion Mode}: Der Übergang in den Vorwärtsflug wird erst freigegeben, wenn der Sensor das stabile Erreichen der minimalen aerodynamischen Fluggeschwindigkeit (\textit{Stall Speed} plus Sicherheitsmarge) 
+an den Regelkreis zurückmeldet.
+
+\subsubsection{Flight Termination System (FTS) -- SAIL-IV Emergency Containment}
+\label{sec:flight_termination_system}
+
+Zur Erfüllung der behördlichen Auflagen hinsichtlich des Schutzes von Drittparteien am Boden (\textit{Enhanced Containment} gemäß EASA MOC 2511) verfügt das UAS über ein vom Autopiloten vollständig 
+isoliertes Flugabbruchsystem vom Typ \textit{Dronavia Zephyr CC ESC MF} \cite{dronavia_zephyr_fts}. Während das im PX4-Autopiloten konfigurierte Software-Geo-Caging als erste Barriere dient und bei Erreichen eines 
+harten Radius von $\SI{9.5}{\km}$ eine automatische Umkehr einleitet, fungiert das FTS als unüberbrückbare Hardware-Letztinstanz.
+
+Das $\SI{9}{\g}$ leichte Modul wird im Rumpfzentrum in Reihe zwischen den PWM-Ausgängen des Pixhawks und den Eingängen der drei Haupt-ESCs geschaltet. Bei einer manuellen Aktivierung über den autarken LoRa-Bodensender 
+(\textit{Klick-Fernauslöser}) fängt das FTS die Signale innerhalb von $\SI{0.27}{\s}$ ab und zwingt die Triebwerke in einen harten Not-Aus (\textit{Emergency Motor Cut-Off}). Zeitgleich wird über einen integrierten PWM-Ausgang 
+das ballistische Fallschirmrettungssystem (PRS) gezündet. Die Kommunikation erfolgt verschlüsselt im $\SI{869}{\MHz}$-Band. Um im alpinen Gelände Signalabschattungen zu minimieren, wird die Bodensender-Antenne auf einem kompakten 
+Stativ ($1{,}5\,\text{m}$) im Feld aufgebaut, was eine stabile Funkreichweite von bis zu $\SI{10}{\km}$ garantiert.
+
+\subsubsection{Geometrically Isolated Backup Magnetometer Architecture}
+\label{sec:isolated_magnetometer}
+
+Aufgrund der hohen elektrischen Ströme ($\ge \SI{120}{\A}$) im zentralen Rumpfbereich während der VTOL-Startphase kommt es zu transienten elektromagnetischen Eigeninterferenzen. Diese verfälschen das im primären GNSS-Gehäuse (Holybro M10) integrierte Magnetometer temporär vollständig (\textit{Magnetic Interference}). 
+
+Zur Gewährleistung einer ungestörten Kursreferenz wird ein sekundäres Hochpräzisions-Magnetometer vom Typ \textit{Holybro RM3100} eingesetzt \cite{holybro_RM3100}. Im Gegensatz zu klassischen AMR-Sensoren basiert das RM3100 auf einer 
+temperaturstabilen, magneto-induktiven Messsensorik mit inhärenter Rauschfilterung. Der Sensor wird räumlich isoliert im äußeren Segment einer Tragfläche oder innerhalb des vertikalen Heckleitwerks verbaut, weit abseits aller Leistungskabel. 
+Die Busanbindung erfolgt digital und störsicher via CAN-Bus über das \textit{DroneCAN}-Protokoll, wodurch Signaldämpfungen im Vergleich zu klassischen I2C-Verbindungen ausgeschlossen sind. Der Extended Kalman Filter (EKF) des Autopiloten gleicht beide 
+Kompassquellen permanent ab und schaltet bei magnetischen Anomalien im Rumpfzentrum nahtlos und transientenfrei auf das isolierte Backup-Magnetometer um.
+
+\subsubsection{Ground-to-Air Communication Infrastructure (Datalink Methodology)}
+\label{sec:ground_to_air_communication}
+
+Die Realisierung von BVLOS-Missionsradien innerhalb der behördlichen SAIL-IV-Zulassung erfordert eine redundante, hochbandbreitige Kommunikationsinfrastruktur zur simultanen Übertragung von Command-and-Control-Daten (C2), 
+telemetrischen MAVLink-Zustandsvektoren und hochauflösenden Videostreams für die on-board Bildverarbeitung. Zur lückenlosen Abdeckung des theoretischen Einsatzszenarios sowie der praktischen Erprobungsphase des Prototragsystems wird 
+ein zweistufiges Hardware-Konzept verfolgt, welches die wirtschaftlichen Limits eines schulischen Budgets mit den operativen Anforderungen harmonisiert.
+
+\begin{enumerate}
+    \item \textbf{Primäres Prototypen-Setup (Taktischer Feld-Link):} Für den operationalen Prototypen wird das digitale High-Definition-Übertragungssystem \textit{CubePilot Herelink v1.1} (Gebrauchtgerät-Spezifikation, Artikelnummer: MBS-DIP-12) 
+    integriert \cite{mybotshop_herelink}. Das System operiert im \SI{2.4}{\GHz}-ISM-Band und kombiniert die Funktionen einer Fernsteuerung, eines Telemetrielinks und eines Videoübertragungssystems in einer kompakten Baugruppe. 
+    Die Luftfahrzeugeinheit (\textit{Herelink Air Unit}) speist das H.264/H.265-komprimierte Full-HD-Videosignal ($1080\text{p}$ @ $60\,\text{fps}$) der EO/IR-Nutzlast über die hardwareseitig integrierte Ethernet-RJ45-Schnittstelle 
+    direkt in den Datenstrom ein. 
+    
+    Die Signallaufzeit (\textit{End-to-End Glass-to-Glass Latenz}) beträgt herstellerseitig optimierte $\approx \SI{110}{\ms}$. Bei einer geringen Leistungsaufnahme von $< \SI{4}{\W}$ an Bord wird im direkten Sichtlinienbetrieb 
+    (\textit{Line-of-Sight} -- LOS) eine stabile Funkreichweite von bis zu $\SI{20}{\km}$ erzielt. Die \textit{Herelink Ground Station} fungiert als primäre Steuereinheit für den Piloten und stellt über ein integriertes WLAN-Modul 
+    einen lokalen Netzwerk-Hotspot zur Verfügung. Über diesen Hotspot greift der bodengestützte Missions-Laptop drahtlos auf den RTSP-Videostream für die Jetson-KI-Evaluierung sowie das volle \textit{QGroundControl}-Telemetriespektrum zu. 
+    Zur Maximierung des Antennengewinns wird die Bodeneinheit stationär an einem kompakten Feldstativ ($1{,}5\,\text{m}$) mit omnidirektionalen und direktionalen Patch-Antennen betrieben.
+    
+    \item \textbf{Theoretisches Upgrade-Szenario (Militärischer Long-Range Link):} Da das primäre Herelink-System physikalisch auf eine maximale Reichweite von \SI{20}{\km} limitiert ist, erfordern Einsätze über diese Distanz hinaus ein technologisches Upgrade. 
+    Für dieses erweiterte Anforderungsprofil wird theoretisch der Übergang zu industriellen IP-Mesh-Funkmodemen (z.~B. \textit{Microhard pDDL}-Serie) im \SI{2.4}{\GHz}-Bereich in Kombination mit einem autarken, schmalbandigen \textit{ExpressLRS (ELRS)} 
+    LoRa-Funksystem im stark durchdringenden \SI{868}{\MHz}-UHF-Band definiert. Zur Kompensation der Freiraumdämpfung wird bodenseitig ein automatischer Antennentracker (\textit{Automatic Antenna Tracker} -- AAT) mit einer hochgewinnbringenden 
+    Richtfunkantenne eingesetzt, welcher sich dynamisch nach den GNSS-Echtzeitkoordinaten des VTOLs ausrichtet.
+\end{enumerate}
+
+\begin{table}[h!]
+    \centering
+    \caption{Frequenzverteilung und funktionale Matrix des Kommunikations-Stacks}
+    \vspace{0.2cm}
+    \begin{tabular}{p{3.5cm} p{2.2cm} p{2.8cm} p{3.5cm}}
+        \toprule
+        \textbf{Subsystem} & \textbf{Frequenzband} & \textbf{Schnittstelle / Protokoll} & \textbf{Primäre Funktion (Einsatz)} \\
+        \midrule
+        CubePilot Herelink  & \SI{2.4}{\GHz} & COFDM / RTSP \& MAVLink & Video, Telemetrie \& C2 (Prototyp) \\
+        Microhard pDDL-Serie & \SI{2.4}{\GHz} & IP-Mesh / TCP-UDP & High-Speed Datenträger ($>\SI{20}{\km}$ Option) \\
+        ExpressLRS Link    & \SI{868}{\MHz} & CRSF / LoRa Modulation & Redundante C2-Steuerung (Option) \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:communication_matrix}
+\end{table}
+
+\newpage
+
+\subsubsection{Regulatory Transponder Peripherals (Detect-and-Avoid \& Remote ID)}
+\label{sec:regulatory_peripherals}
+
+Zur Erlangung der behördlichen SAIL-IV-Fluggenehmigung im europäischen Luftraum müssen zwingend Systeme zur kooperativen Luftraumüberwachung sowie zur digitalen Identifikation integriert werden. Diese Komponenten minimieren das Risiko von 
+Kollisionen im BVLOS-Sichtlinienbetrieb und stellen die gesetzliche Konformität sicher:
+
+\begin{itemize}
+    \item \textbf{ADS-B In Empfänger (uAvionix pingRX Pro):} Für die Umsetzung eines automatisierten \textit{Detect-and-Avoid}-Konzepts (DAA) wird ein Luftfahrt-zertifizierter Dual-Band-ADS-B-Empfänger vom Typ \textit{uAvionix pingRX Pro} 
+    integriert \cite{uavionix_pingrx_pro}. Das System wiegt lediglich $5\,\text{g}$ bei minimalen Gehäuseabmessungen von $32 \times 31 \times 9\,\text{mm}$ und schützt seine Elektronik über ein robustes Aluminiumgehäuse. 
+    Der Empfänger wertet simultan die Frequenzen $\SI{978}{\MHz}$ und $\SI{1090}{\MHz}$ aus, um Transpondersignale bemannter Luftfahrzeuge (z.~B. Rettungshubschrauber) in Echtzeit zu erfassen. Die Anbindung erfolgt über ein standardisiertes 
+    MAVLink-Protokoll direkt an einen freien Telemetrie-UART-Port der FMU. Die empfangenen Positionsdaten fremder Luftfahrzeuge werden direkt in die Luftraumkarte der GCS eingespeist, um dem Piloten eine präzise Lageerkennung zu ermöglichen.
+    
+    \item \textbf{Direct Remote ID Modul (Holybro Remote ID Module):} Zur Erfüllung der gesetzlichen EU-Fernkennungsverordnung verfügt das UAS über ein dediziertes \textit{Holybro Remote ID Module} \cite{holybro_remote_id}. 
+    Das Modul basiert auf einem \textit{Espressif ESP32-C3}-Funkchip und strahlt die Betreiber-ID sowie die Live-Telemetriedaten (Position, Höhe, Kurs) mit einer Sendeleistung von $+20\,\text{dBm}$ ($100\,\text{mW}$) via $\SI{2.4}{\GHz}$ 
+    WLAN und Bluetooth aus, wodurch im Freifeld Detektionsreichweiten von $>\SI{5}{\km}$ erzielt werden. Das System führt die Open-Source-Firmware \textit{ArduRemoteID} aus und ist softwareseitig nativ im PX4-Autopiloten verankert. 
+    Die physische Einbindung erfolgt im Avionikdeck, wobei die Spannungsversorgung ($\SI{5}{\V}$) und der Datenaustausch verlustfrei über den digitalen CAN-Bus mittels 
+    des \textit{DroneCAN}-Protokolls realisiert werden.
+\end{itemize}
+
+\subsection{On-Board Communication Busses (Bus-Topologien)}
+\subsubsection{Deterministic Control via CAN-Bus (UAVCAN / Cyphal)}
+\subsubsection{High-Bandwidth Inter-Processor Bridge (Ethernet)}
+
+\subsection{Power Distribution Architecture \texorpdfstring{\&}{\&} Safety Isolation}
+\subsubsection{Redundant Avionics Power Supply (BECs)}
+\subsubsection{Galvanic Isolation of the Propulsion System}
+
+\subsection{Electromagnetic Compatibility (EMV) \texorpdfstring{\&}{\&} Shielding Concept}
+\subsubsection{Component Placement and Spatial Separation}
+\subsubsection{Physical Shielding and Grounding}
+
+
+\newpage
+\section{Payload Weight Statement (Massen- und Schwerpunktbilanz)}
+\label{sec:weight_balance}
+
+Die exakte Erfassung aller Einzelmassen innerhalb des Avionik-, Sensorik- und Nutzlast-Stacks ist eine fundamentale Voraussetzung für die Bestimmung des Gesamtschwerpunkts (\textit{Center of Gravity} -- CoG) sowie für die aerodynamische Trimmung des Tri-Tilt-Rotor-UAS. Da das System ein modulares Payload-Konzept für die Suchkamera verfolgt, bildet die Massenbilanz in Tabelle~\ref{tab:avionics_mass_balance} das maximale Gewichtsszenario (unter Verwendung des schwersten \textit{Foxtech Seeker AI}-Gimbals inklusive mechanischer Dämpfungsadapter) ab.
+
+\begin{table}[h!]
+    \centering
+    \caption{Vollständige Massenbilanz des Avionik-, Sensorik- und Peripherie-Stacks}
+    \vspace{0.2cm}
+    \begin{tabular}{p{5.8cm} p{4.7cm} p{2.5cm}}
+        \toprule
+        \textbf{Baugruppe / Komponente} & \textbf{Spezifikation / Hardware-Typ} & \textbf{Masse (g)} \\
+        \midrule
+        \textbf{Flugsteuerung (Core)} & & \\
+        ~~Pixhawk 6X Autopilot & Flight Management Unit (FMU, STM32H753) & $\SI{120}{\g}$ \\
+        ~~Holybro Standard Baseboard & v2B-Trägerplatine mit Ethernet-Logik & $\SI{43}{\g}$ \\
+        \midrule
+        \textbf{Missionscomputer} & & \\
+        ~~NVIDIA Jetson Orin Nano & System-on-Module (SoM) & $\SI{30}{\g}$ \\
+        ~~Reference Carrier Board & Inkl. Aluminium-Kühlkörper \& Aktivlüfter & $\SI{125}{\g}$ \\
+        \midrule
+        \textbf{Satellitennavigation} & & \\
+        ~~Holybro M10 GPS (Primär) & u-blox M10 Chipsatz, inkl. IST8310 Kompass & $\SI{42}{\g}$ \\
+        ~~Holybro H-RTK F9P Rover (Sekundär) & u-blox ZED-F9P Multiband-Empfänger & $\SI{36}{\g}$ \\
+        \midrule
+        \textbf{Integrierte Autopilot-Sensoren} & & \\
+        ~~3x InvenSense ICM-45686 & Dreifach redundante IMUs (auf FMU-Board) & im Core inkl. \\
+        ~~Diversitäre Barometer-Bestückung & 1x ICP20100 \& 1x BMP388 (auf FMU-Board) & im Core inkl. \\
+        \midrule
+        \textbf{Missions- \& Failsafe-Sensorik} & & \\
+        ~~Holybro High Precision DroneCAN & DLVR Differenzdruck-Wandlerplatine & $\SI{16}{\g}$ \\
+        ~~Prandtl-Staurohr (PT60) & Pitot-Statik-Sonde inkl. Verschlauchung & $\SI{22.3}{\g}$ \\
+        ~~LightWare SF11/C & Eindimensionaler LiDAR-Entfernungsmesser & $\SI{35}{\g}$ \\
+        ~~ARK Flow Modul & PMW3901 Optical Flusssensor via DroneCAN & $\SI{12}{\g}$ \\
+        ~~Holybro RM3100 & Geometrisch isolierter Backup-Kompass & $\SI{18}{\g}$ \\
+        \midrule
+        \textbf{Kommunikation \& Regulierungen} & & \\
+        ~~CubePilot Herelink Air Unit v1.1 & Primärer C2- \& HD-Videodatenlink & $\SI{95}{\g}$ \\
+        ~~2x Herelink Taoglas Antennen & Luftfahrzeug-Funkantennen ($\SI{2.4}{\GHz}$) & $\SI{30}{\g}$ \\
+        ~~Herelink Air Unit Ethernet-Kabel & Spezialadapter auf RJ45-Netzwerkbuchse & $\SI{12}{\g}$ \\
+        ~~Dronavia Zephyr CC ESC MF & Dediziertes Hardware-FTS Modul & $\SI{9}{\g}$ \\
+        ~~uAvionix pingRX Pro & Dual-Band ADS-B-In-Empfänger & $\SI{5}{\g}$ \\
+        ~~Holybro Remote ID Module & EU-Fernkennungs-Platine (ohne Gehäuse) & $\SI{4}{\g}$ \\
+        \midrule
+        \textbf{Nutzlast \& Verkabelung} & & \\
+        ~~Foxtech Seeker EO \& Ranging AI & 3-Achsen-Gimbal-Kamera (Max-Szenario) & $\SI{800}{\g}$ \\
+        ~~Payload Interface \& Dämpfung & Mechanische CFK-Aufhängung \& Puffer & $\SI{65}{\g}$ \\
+        ~~Avionik-Gesamtverkabelung & JST-GH, Cat.6-Ethernet, Coaxial \& CAN & $\SI{150}{\g}$ \\
+        \midrule
+        \textbf{Gesamtgewicht Avionik/Payload} & \textbf{Reine Elektronik- und Nutzlastmasse} & \textbf{\SI{1648.3}{\g} (\SI{1.648}{\kg})} \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:avionics_mass_balance}
+\end{table}
+
+
 \section{Flight Control Laws (C-Laws for Conversion Mode)}
 \section{Sensor Fusion Matrix (IMU, GNSS, Air-Data)}
-\section{Avionics Hardware Architecture}
