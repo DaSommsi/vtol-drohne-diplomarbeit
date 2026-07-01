@@ -334,57 +334,66 @@ Kollisionen im BVLOS-Sichtlinienbetrieb und stellen die gesetzliche Konformität
 \section{Payload Weight Statement (Massen- und Schwerpunktbilanz)}
 \label{sec:weight_balance}
 
-Die exakte Erfassung aller Einzelmassen innerhalb des Avionik-, Sensorik- und Nutzlast-Stacks ist eine fundamentale Voraussetzung für die Bestimmung des Gesamtschwerpunkts (\textit{Center of Gravity} -- CoG) sowie für die aerodynamische Trimmung des Tri-Tilt-Rotor-UAS. Da das System ein modulares Payload-Konzept für die Suchkamera verfolgt, bildet die Massenbilanz in Tabelle~\ref{tab:avionics_mass_balance} das maximale Gewichtsszenario (unter Verwendung des schwersten \textit{Foxtech Seeker AI}-Gimbals inklusive mechanischer Dämpfungsadapter) ab.
+Die exakte Erfassung aller Einzelmassen innerhalb des Avionik-, Sensorik- und Nutzlast-Stacks ist eine fundamentale Voraussetzung für die Bestimmung des Gesamtschwerpunkts (\textit{Center of Gravity} -- CoG) sowie für die aerodynamische Trimmung des Tri-Tilt-Rotor-UAS. Da das System ein modulares Payload-Concepts für die Suchkamera verfolgt, bildet die Massenbilanz in Tabelle~\ref{tab:avionics_mass_balance} das maximale Gewichtsszenario (unter Verwendung des schwersten \textit{Foxtech Seeker AI}-Gimbals inklusive mechanischer Dämpfungsadapter) ab.
 
-\begin{table}[h!]
-    \centering
-    \caption{Vollständige Massenbilanz des Avionik-, Sensorik- und Peripherie-Stacks}
-    \vspace{0.2cm}
-    \begin{tabular}{p{5.8cm} p{4.7cm} p{2.5cm}}
-        \toprule
-        \textbf{Baugruppe / Komponente} & \textbf{Spezifikation / Hardware-Typ} & \textbf{Masse (g)} \\
-        \midrule
-        \textbf{Flugsteuerung (Core)} & & \\
-        ~~Pixhawk 6X Autopilot & Flight Management Unit (FMU, STM32H753) & $\SI{120}{\g}$ \\
-        ~~Holybro Standard Baseboard & v2B-Trägerplatine mit Ethernet-Logik & $\SI{43}{\g}$ \\
-        \midrule
-        \textbf{Missionscomputer} & & \\
-        ~~NVIDIA Jetson Orin Nano & System-on-Module (SoM) & $\SI{30}{\g}$ \\
-        ~~Reference Carrier Board & Inkl. Aluminium-Kühlkörper \& Aktivlüfter & $\SI{125}{\g}$ \\
-        \midrule
-        \textbf{Satellitennavigation} & & \\
-        ~~Holybro M10 GPS (Primär) & u-blox M10 Chipsatz, inkl. IST8310 Kompass & $\SI{42}{\g}$ \\
-        ~~Holybro H-RTK F9P Rover (Sekundär) & u-blox ZED-F9P Multiband-Empfänger & $\SI{36}{\g}$ \\
-        \midrule
-        \textbf{Integrierte Autopilot-Sensoren} & & \\
-        ~~3x InvenSense ICM-45686 & Dreifach redundante IMUs (auf FMU-Board) & im Core inkl. \\
-        ~~Diversitäre Barometer-Bestückung & 1x ICP20100 \& 1x BMP388 (auf FMU-Board) & im Core inkl. \\
-        \midrule
-        \textbf{Missions- \& Failsafe-Sensorik} & & \\
-        ~~Holybro High Precision DroneCAN & DLVR Differenzdruck-Wandlerplatine & $\SI{16}{\g}$ \\
-        ~~Prandtl-Staurohr (PT60) & Pitot-Statik-Sonde inkl. Verschlauchung & $\SI{22.3}{\g}$ \\
-        ~~LightWare SF11/C & Eindimensionaler LiDAR-Entfernungsmesser & $\SI{35}{\g}$ \\
-        ~~ARK Flow Modul & PMW3901 Optical Flusssensor via DroneCAN & $\SI{12}{\g}$ \\
-        ~~Holybro RM3100 & Geometrisch isolierter Backup-Kompass & $\SI{18}{\g}$ \\
-        \midrule
-        \textbf{Kommunikation \& Regulierungen} & & \\
-        ~~CubePilot Herelink Air Unit v1.1 & Primärer C2- \& HD-Videodatenlink & $\SI{95}{\g}$ \\
-        ~~2x Herelink Taoglas Antennen & Luftfahrzeug-Funkantennen ($\SI{2.4}{\GHz}$) & $\SI{30}{\g}$ \\
-        ~~Herelink Air Unit Ethernet-Kabel & Spezialadapter auf RJ45-Netzwerkbuchse & $\SI{12}{\g}$ \\
-        ~~Dronavia Zephyr CC ESC MF & Dediziertes Hardware-FTS Modul & $\SI{9}{\g}$ \\
-        ~~uAvionix pingRX Pro & Dual-Band ADS-B-In-Empfänger & $\SI{5}{\g}$ \\
-        ~~Holybro Remote ID Module & EU-Fernkennungs-Platine (ohne Gehäuse) & $\SI{4}{\g}$ \\
-        \midrule
-        \textbf{Nutzlast \& Verkabelung} & & \\
-        ~~Foxtech Seeker EO \& Ranging AI & 3-Achsen-Gimbal-Kamera (Max-Szenario) & $\SI{800}{\g}$ \\
-        ~~Payload Interface \& Dämpfung & Mechanische CFK-Aufhängung \& Puffer & $\SI{65}{\g}$ \\
-        ~~Avionik-Gesamtverkabelung & JST-GH, Cat.6-Ethernet, Coaxial \& CAN & $\SI{150}{\g}$ \\
-        \midrule
-        \textbf{Gesamtgewicht Avionik/Payload} & \textbf{Reine Elektronik- und Nutzlastmasse} & \textbf{\SI{1648.3}{\g} (\SI{1.648}{\kg})} \\
-        \bottomrule
-    \end{tabular}
-    \label{tab:avionics_mass_balance}
-\end{table}
+\vspace{0.2cm}
+
+% HINWEIS: Erfordert \usepackage{longtable} in der Präambel
+\begin{longtable}{p{6.0cm} p{5.0cm} p{2.5cm}}
+    \caption{Vollständige Massenbilanz des Avionik-, Sensorik- und Peripherie-Stacks} \label{tab:avionics_mass_balance} \\
+    \toprule
+    \textbf{Baugruppe / Komponente} & \textbf{Spezifikation / Hardware-Typ} & \textbf{Masse (g)} \\
+    \midrule
+    \endhead % Dieser Tabellenkopf wird auf jeder neuen Seite wiederholt
+    
+    \bottomrule
+    \endfoot % Fußzeile für umgebrochene Seiten
+    
+    \textbf{Flugsteuerung (Core)} & & \\
+    ~~Pixhawk 6X Autopilot & Flight Management Unit (FMU, STM32H753) & $\SI{120}{\g}$ \\
+    ~~Holybro Standard Baseboard & v2B-Trägerplatine mit Ethernet-Logik & $\SI{43}{\g}$ \\
+    \midrule
+    
+    \textbf{Missionscomputer} & & \\
+    ~~NVIDIA Jetson Orin Nano & System-on-Module (SoM) & $\SI{30}{\g}$ \\
+    ~~Reference Carrier Board & Inkl. Aluminium-Kühlkörper \& Aktivlüfter & $\SI{125}{\g}$ \\
+    \midrule
+    
+    \textbf{Satellitennavigation} & & \\
+    ~~Holybro M10 GPS (Primär) & u-blox M10 Chipsatz, inkl. IST8310 Kompass & $\SI{42}{\g}$ \\
+    ~~Holybro H-RTK F9P Rover (Sekundär) & u-blox ZED-F9P Multiband-Empfänger & $\SI{36}{\g}$ \\
+    \midrule
+    
+    \textbf{Integrierte Autopilot-Sensoren} & & \\
+    ~~3x InvenSense ICM-45686 & Dreifach redundante IMUs (auf FMU-Board) & im Core inkl. \\
+    ~~Diversitäre Barometer-Bestückung & 1x ICP20100 \& 1x BMP388 (auf FMU-Board) & im Core inkl. \\
+    \midrule
+    
+    \textbf{Missions- \& Failsafe-Sensorik} & & \\
+    ~~Holybro High Precision DroneCAN & DLVR Differenzdruck-Wandlerplatine & $\SI{16}{\g}$ \\
+    ~~Prandtl-Staurohr (PT60) & Pitot-Statik-Sonde inkl. Verschlauchung & $\SI{22.3}{\g}$ \\
+    ~~LightWare SF11/C & Einelektronischer LiDAR-Entfernungsmesser & $\SI{35}{\g}$ \\
+    ~~ARK Flow Modul & PMW3901 Optical Flusssensor via DroneCAN & $\SI{12}{\g}$ \\
+    ~~Holybro RM3100 & Geometrisch isolierter Backup-Kompass & $\SI{18}{\g}$ \\
+    \midrule
+    
+    \textbf{Kommunikation \& Regulierungen} & & \\
+    ~~CubePilot Herelink Air Unit v1.1 & Primärer C2- \& HD-Videodatenlink & $\SI{95}{\g}$ \\
+    ~~2x Herelink Taoglas Antennen & Luftfahrzeug-Funkantennen ($\SI{2.4}{\GHz}$) & $\SI{30}{\g}$ \\
+    ~~Herelink Air Unit Ethernet-Kabel & Spezialadapter auf RJ45-Netzwerkbuchse & $\SI{12}{\g}$ \\
+    ~~Dronavia Zephyr CC ESC MF & Dediziertes Hardware-FTS Modul & $\SI{9}{\g}$ \\
+    ~~uAvionix pingRX Pro & Dual-Band ADS-B-In-Empfänger & $\SI{5}{\g}$ \\
+    ~~Holybro Remote ID Module & EU-Fernkennungs-Platine (ohne Gehäuse) & $\SI{4}{\g}$ \\
+    \midrule
+    
+    \textbf{Nutzlast \& Verkabelung} & & \\
+    ~~Foxtech Seeker EO \& Ranging AI & 3-Achsen-Gimbal-Kamera (Max-Szenario) & $\SI{800}{\g}$ \\
+    ~~Payload Interface \& Dämpfung & Mechanische CFK-Aufhängung \& Puffer & $\SI{65}{\g}$ \\
+    ~~Avionik-Gesamtverkabelung & JST-GH, Cat.6-Ethernet, Coaxial \& CAN & $\SI{150}{\g}$ \\
+    \midrule
+    
+    \textbf{Gesamtgewicht Avionik/Payload} & \textbf{Reine Elektronik- und Nutzlastmasse} & \textbf{\SI{1648.3}{\g} (\SI{1.648}{\kg})} \\
+\end{longtable}
 
 
 \section{Flight Control Laws (C-Laws for Conversion Mode)}
