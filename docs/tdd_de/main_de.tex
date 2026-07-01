@@ -48,6 +48,18 @@
 \setcounter{secnumdepth}{3} % Nummerierung bis subsubsection aktivieren
 \setcounter{tocdepth}{3}    % subsubsection im Inhaltsverzeichnis anzeigen
 
+% --- Für die WBS
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usepackage{tikz-qtree}
+\usepackage{forest}
+
+% Optionale Anpassung für die Baum-Optik
+\tikzset{every tree node/.style={align=center, anchor=north, draw, rectangle, rounded corners, padding=4pt, font=\footnotesize},
+	edge/.style={draw, fork},
+	level distance=2.5cm,
+	sibling distance=0.5cm}
+
 % --- Hyperref Konfiguration ---
 \usepackage{hyperref}
 \hypersetup{
