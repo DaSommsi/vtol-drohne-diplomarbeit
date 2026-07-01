@@ -1,7 +1,7 @@
 ﻿\chapter{Propulsion \& Tilt-Mechanism}
 \label{ch:propulsion_tilt}
 
-Dieses Kapitel umfasst die elektrotechnische und mechanische Dimensionierung des asymmetrischen Tri-Tilt-VTOL-Antriebsstrangs für das Albatros-System. Ausgehend von den primären Missionsanforderungen (einem MTOM von \SIrange{20}{30}{\kilo\gram} sowie einer operationalen Dienstgipfelhöhe von bis zu \SI{4000}{\meter}\,\text{ü.\,M.}) wird die Auslegung der Aktuatoren, Motorregler (ESC) und Rotorblätter mathematisch sowie simulativ hergeleitet. 
+Dieses Kapitel umfasst die elektrotechnische und mechanische Dimensionierung des asymmetrischen Tri-Tilt-VTOL-Antriebsstrangs für das UAV. Ausgehend von den primären Missionsanforderungen (einem MTOM von \SIrange{20}{30}{\kilo\gram} sowie einer operationalen Dienstgipfelhöhe von bis zu \SI{4000}{\meter}\,\text{ü.\,M.}) wird die Auslegung der Aktuatoren, Motorregler (ESC) und Rotorblätter mathematisch sowie simulativ hergeleitet. 
 
 \noindent Das primäre Entwicklungsziel liegt in der Auflösung des klassischen physikalischen Zielkonflikts zwischen maximalem statischen Standschub in dünner Hochgebirgsluft (VTOL-Modus) und einem aerodynamisch hocheffizienten, widerstandsarmen Vortrieb im Fixed-Wing-Reiseflug (\SI{65}{\kilo\meter\per\hour}). Hierzu wird die Triebwerksarchitektur in zwei funktionale Teilsysteme segmentiert:
 
@@ -35,7 +35,7 @@ Innerhalb dieser Systemarchitektur erfordert jeder bürstenlose Elektromotor zwi
 \section{Motor Specifications \& Efficiency}
 
 \noindent
-Die elektrotechnische Auslegung und die Effizienzanalyse des Antriebsstrangs bilden das Bindeglied zwischen den atmosphärischen Rahmenbedingungen und der mechanischen Schubleistung. Basierend auf der Systemnennspannung von \SI{44.4}{\volt} (12S-LiPo-Konfiguration) sowie der geforderten Leistungscharakteristik werden für das Albatros-System drei bürstenlose Außenläufermotoren mit einer spezifischen Drehzahl von \SI{210}{KV} eingesetzt. Diese Einheiten weisen eine maximale Leistungsaufnahme von jeweils \SI{3200}{\watt} bei einem kurzzeitigen Spitzenstrom von \SI{70}{\ampere} auf. 
+Die elektrotechnische Auslegung und die Effizienzanalyse des Antriebsstrangs bilden das Bindeglied zwischen den atmosphärischen Rahmenbedingungen und der mechanischen Schubleistung. Basierend auf der Systemnennspannung von \SI{44.4}{\volt} (12S-LiPo-Konfiguration) sowie der geforderten Leistungscharakteristik werden für das UAV drei bürstenlose Außenläufermotoren mit einer spezifischen Drehzahl von \SI{210}{KV} eingesetzt. Diese Einheiten weisen eine maximale Leistungsaufnahme von jeweils \SI{3200}{\watt} bei einem kurzzeitigen Spitzenstrom von \SI{70}{\ampere} auf. 
 
 \noindent
 Zur Regelung der Phasenströme und zur Umsetzung der feldorientierten Orientierung (FOC) wird jeder Motor mit einem dedizierten Regler bestückt, der für eine dauerhafte Strombelastbarkeit von \SI{60}{\ampere} und eine kurzzeitige Spitzenstromtoleranz von \SI{130}{\ampere} spezifiziert ist. Diese Überdimensionierung des ESC-Spitzenstroms gewährleistet eine kritische Sicherheitsmarge bei abrupten Regelzyklen des Flight Controllers zur Lagestabilisierung.
