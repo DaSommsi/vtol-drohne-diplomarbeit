@@ -48,6 +48,18 @@
 \setcounter{secnumdepth}{3} % Nummerierung bis subsubsection aktivieren
 \setcounter{tocdepth}{3}    % subsubsection im Inhaltsverzeichnis anzeigen
 
+% --- Für die WBS
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usepackage{tikz-qtree}
+\usepackage{forest}
+
+% Optionale Anpassung für die Baum-Optik
+\tikzset{every tree node/.style={align=center, anchor=north, draw, rectangle, rounded corners, padding=4pt, font=\footnotesize},
+	edge/.style={draw, fork},
+	level distance=2.5cm,
+	sibling distance=0.5cm}
+
 % --- Hyperref Konfiguration ---
 \usepackage{hyperref}
 \hypersetup{
@@ -152,6 +164,8 @@ Dieses Dokument unterliegt einem kontrollierten Änderungsmanagement. Gemäß de
         0.1.0 & 14.06.2026 & \textbf{Meilenstein CONOPS abgeschlossen.} Definition der fünf autonomen Flugphasen, Implementierung des sensorlosen EKF-Windschätzungsalgorithmus sowie behördengerechte SORA-Risikoeinstufung (SAIL IV) nach Austro-Control-Leitfaden. & D. Sommerer \\
         \midrule
         0.1.1 & 16.06.2026 & Integration der redundanten C2-Link-Frequenzen ($868\,\text{MHz}$ / $2{,}4\,\text{GHz}$ / LTE), Ergänzung der STS-Fernpilotenkompetenzen, Spezifikation des Emergency Response Plans (ERP) sowie Korrektur des thermischen Höhenprofils. & D. Sommerer \\
+        \midrule
+       0.2.0 & 30.06.2026 & \textbf{Meilenstein Propulsion \& Tilt abgeschlossen.} Vollständige Auslegung und mathematische Herleitung des asymmetrischen Tri-Tilt-VTOL-Antriebsstrangs, Integration des flachen Luftfahrt-Aktuators Volz DA 36-LP inklusive mechanisch-elektronischer Redundanzkonzepte sowie Definition der spezifischen Rotorblattgeometrien basierend auf konzeptionellen Schätzwerten. & S. Minkenberg \\
         \bottomrule
         
     \end{tabular}

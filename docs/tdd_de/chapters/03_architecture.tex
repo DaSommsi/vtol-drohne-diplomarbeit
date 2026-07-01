@@ -52,12 +52,74 @@ Das Tri-Tilt-Rotor-Konzept kombiniert die mechanischen Vorteile eines Tricopters
 %Physische Aufteilung des Bodensegments (Industrie-PC/Laptop mit HMI, 
 %Antennentracker, RC-Fernsteuerung für den manuellen Override und Funkmodule).
 
+\newpage
+
 \subsection{System Work Breakdown Structure (WBS)}
 %Ein grafisches Organigramm (Baumstruktur), welches das 
 %Gesamtsystem visuell in die einzelnen Luft- und Bodenkomponenten aufteilt.
-\newpage
-% ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 
-% ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+\vspace{-0.5cm} % Schiebt den Baum näher an die Überschrift, um Platz zu sparen
+\begin{figure}[!h] % Zwingt die Grafik fest an diese Position
+\centering
+\tikzset{
+    % \scriptsize macht den Text kompakter, damit der Baum garantiert auf die Seite passt
+    every tree node/.style={draw, rectangle, rounded corners, align=left, font=\scriptsize, inner sep=3.5pt, text width=2.8cm, anchor=west},
+    edge/.style={draw, fork},
+    level distance=3.2cm,    % Horizontaler Abstand
+    sibling distance=0.05cm, % Sehr kompakter vertikaler Abstand
+    grow=right               % Baum wächst nach rechts
+}
+\begin{tikzpicture}
+
+\Tree [.{Albatros VTOL UAS}
+        [.{Airborne Segment (UAV)}
+            [.{Struktur (Airframe)}
+                [.{Skelett}
+                    [.{Voll-Carbon} ]
+                ]
+                [.{Außenhaut}
+                    [.{CFK} ]
+                    [.{GFK\\(für Signal- bereiche)} ]
+                ]
+                [.{Tragflächen}
+                    [.{Flaps\\(Steuerung \& Active Aero)} ]
+                ]
+                [.{Heckausleger}
+                    [.{V-Leitwerk} ]
+                ]
+            ]
+            [.{Antrieb \& Aktuatorik}
+                [.{Vorderachse\\(Tilt-Rotoren)}
+                    [.{Motoren:\\T-Motor V605\\KV210} ]
+                    [.{Regler:\\T-Motor V120A\\14S} ]
+                    [.{Rotorblätter:\\T-Motor\\VZ30$\times$10.5} ]
+                    [.{Servos:\\Volz\\DA 30-HT-D} ]
+                ]
+                [.{Hinterachse\\(Hover-Motor)}
+                    [.{Motor:\\T-Motor V605\\KV210} ]
+                    [.{Regler:\\T-Motor V120A\\14S} ]
+                    [.{Rotorblätter:\\T-Motor G26$\times$8.5\\3-Blatt} ]
+                ]
+            ]
+            [.{Elektrotechnik \&\\Energie}
+                [.{Hauptakku}
+                    [.{2$\times$ 6S LiPo\\in Serie\\(22000\,mAh)} ]
+                ]
+                [.{[...]} ]
+            ]
+            [.{Elektronik \&\\Avionik\\(Kollege)}
+                [.{[...]} ]
+            ]
+        ]
+        [.{Ground Segment\\(Kollege)}
+            [.{[...]} ]
+        ]
+      ]
+
+\end{tikzpicture}
+\caption{System Work Breakdown Structure (WBS) -- Fokus Mechanik und Elektrotechnik}
+\label{fig:system_wbs}
+\end{figure}
 
 \section{Functional Architecture}
 \label{sec:functional_architecture}

@@ -1,6 +1,132 @@
 ﻿\chapter{Propulsion \& Tilt-Mechanism}
 \label{ch:propulsion_tilt}
+
+Dieses Kapitel umfasst die elektrotechnische und mechanische Dimensionierung des asymmetrischen Tri-Tilt-VTOL-Antriebsstrangs für das Albatros-System. Ausgehend von den primären Missionsanforderungen (einem MTOM von \SIrange{20}{30}{\kilo\gram} sowie einer operationalen Dienstgipfelhöhe von bis zu \SI{4000}{\meter}\,\text{ü.\,M.}) wird die Auslegung der Aktuatoren, Motorregler (ESC) und Rotorblätter mathematisch sowie simulativ hergeleitet. 
+
+\noindent Das primäre Entwicklungsziel liegt in der Auflösung des klassischen physikalischen Zielkonflikts zwischen maximalem statischen Standschub in dünner Hochgebirgsluft (VTOL-Modus) und einem aerodynamisch hocheffizienten, widerstandsarmen Vortrieb im Fixed-Wing-Reiseflug (\SI{65}{\kilo\meter\per\hour}). Hierzu wird die Triebwerksarchitektur in zwei funktionale Teilsysteme segmentiert:
+
+\begin{itemize}
+    \item \textbf{Vorderachse (Tilt-Rotoren):} Zwei schwenkbare Triebwerkseinheiten mit \SI{210}{KV}-Außenläufermotoren und starren \SI{30}{inch} $\times$ \SI{10.5}{inch} 2-Blatt-Carbon-Propellern, welche im Missionsverlauf als kombinierte Hub- und Zugaggregate fungieren.
+    \item \textbf{Hinterachse (Purer Hover Motor):} Eine reine, im Reiseflug deaktivierte Hubeinheit mit einem \SI{210}{KV}-Motor und einem modularen, aerodynamisch klappbaren \SI{26}{inch} $\times$ \SI{8.5}{inch} 3-Blatt-Carbon-System zur Maximierung des statischen Schubs bei hochgradig begrenzten Platzverhältnissen am Heckausleger.
+\end{itemize}
+
+\noindent Die Validierung der Auslegungsparameter erfolgt über eine iterative computergestützte Szenarienanalyse mittels \texttt{eCalc}. 
+
 \section{Powertrain Architecture}
+
+\noindent
+Die Architektur des Antriebsstrangs bildet das technologische Fundament des Albatros-VTOL-Systems. Die Auslegung basiert auf einer asymmetrischen Y-Tricopter-Topologie, welche die mechanischen Vorteile eines Starrflügelflugzeugs im Reiseflug mit der vertikalen Start- und Landefähigkeit eines Multirotors kombiniert. Das System besteht strukturell aus zwei vorderen, schwenkbaren Triebwerkseinheiten (Tilt-Rotoren) an den Tragflächen und einer fixen, reinen Hubeinheit (Hover-Motor) am Heckausleger.
+
+\noindent
+Das primäre Ziel dieser Triebwerkstopologie ist die Gewährleistung einer funktionalen Systemtrennung zwischen den Flugphasen. Während im Schwebeflug alle drei Antriebe aktiv sind, um das System zu stabilisieren, wird der Heckmotor nach der Transition in den Horizontalflug vollständig deaktiviert. Um den aerodynamischen Gesamtwiderstand im energieeffizienten Reiseflug bei \SI{65}{\kilo\meter\per\hour} zu minimieren, sieht die Architektur ein einklappbares Hecktriebwerk vor, während die vorderen Rotoren als reine Zugpropeller fungieren.
+
+\noindent
+Die physikalischen, atmosphärischen und elektrischen Rahmenbedingungen des Gesamtsystems definieren die Anforderungen an diese Architektur:
+
+\begin{itemize}
+    \item \textbf{Gewichtssegment und Energiequelle:} Das System ist auf ein maximales Abfluggewicht (MTOM) von \SIrange{20}{30}{\kilo\gram} ausgelegt. Als zentrale Energiequelle dient ein 12S-LiPo-Akkumulator mit einer Nennspannung von \SI{44.4}{\volt}, welcher die notwendige Energiedichte für das geforderte Missionsprofil bereitstellt.
+    \item \textbf{Atmosphärische Einsatzgrenzen (Worst-Case):} Die Architektur muss die volle Manövrierfähigkeit auf einer maximalen Dienstgipfelhöhe von \SI{4000}{\meter} ü.\,M. garantieren. Der dort vorherrschende, reduzierte Luftdruck von \SI{616}{\hecto\pascal} und extreme thermische Umgebungsvariablen von \SI{-35}{\celsius} bis \SI{40}{\celsius} führen zu einem signifikanten Dichtehöhen-Verlust, der durch Leistungsreserven kompensiert werden muss.
+    \item \textbf{Elektrischer Leistungsfluss:} Die Topologie sieht vor, dass der elektrische Strom vom zentralen Akkumulator über ein Hochstrom-Stromverteilerboard (Power Distribution Board, PDB) sternförmig zu den Reglern geleitet wird.
+\end{itemize}
+
+\noindent
+Innerhalb dieser Systemarchitektur erfordert jeder bürstenlose Elektromotor zwingend die Zuordnung eines eigenen, isolierten Motorreglers (ESC). Da die feldorientierte Regelung (FOC) die dreidimensionale Rotorlage zur exakten elektronischen Kommutierung permanent sensorlos erfassen muss, ist ein Zusammenschluss mehrerer Motoren an einem einzigen Regler physikalisch ausgeschlossen. Das strukturelle Layout sieht zudem vor, die Regler aus thermischen Gründen dezentral im kühlenden Abwind der jeweiligen Propeller zu positionieren. Die konkrete mathematische und simulative Dimensionierung der Motoren, Reglerströme und Rotorblattgeometrien zur Erfüllung dieser Anforderungen wird in den folgenden Unterkapiteln hergeleitet.
+
 \section{Motor Specifications \& Efficiency}
+
+\noindent
+Die elektrotechnische Auslegung und die Effizienzanalyse des Antriebsstrangs bilden das Bindeglied zwischen den atmosphärischen Rahmenbedingungen und der mechanischen Schubleistung. Basierend auf der Systemnennspannung von \SI{44.4}{\volt} (12S-LiPo-Konfiguration) sowie der geforderten Leistungscharakteristik werden für das Albatros-System drei bürstenlose Außenläufermotoren mit einer spezifischen Drehzahl von \SI{210}{KV} eingesetzt. Diese Einheiten weisen eine maximale Leistungsaufnahme von jeweils \SI{3200}{\watt} bei einem kurzzeitigen Spitzenstrom von \SI{70}{\ampere} auf. 
+
+\noindent
+Zur Regelung der Phasenströme und zur Umsetzung der feldorientierten Orientierung (FOC) wird jeder Motor mit einem dedizierten Regler bestückt, der für eine dauerhafte Strombelastbarkeit von \SI{60}{\ampere} und eine kurzzeitige Spitzenstromtoleranz von \SI{130}{\ampere} spezifiziert ist. Diese Überdimensionierung des ESC-Spitzenstroms gewährleistet eine kritische Sicherheitsmarge bei abrupten Regelzyklen des Flight Controllers zur Lagestabilisierung.
+
+\noindent
+Die Validierung dieses Setups erfolgte über eine computergestützte numerische Simulation in \texttt{eCalc}. Da die exakten Triebwerks- und Reglerkomponenten in der herstellerspezifischen Datenbank der Software nicht physisch hinterlegt waren, wurde die mathematische Modellierung über mathematisch äquivalente Vergleichskomponenten mit identischen elektrischen Kenndaten (KV-Wert, Innenwiderstand, maximale Belastbarkeit) realisiert. 
+
+\noindent
+Aufgrund der asymmetrischen Tri-Tilt-Konfiguration wurde die Schwebefluganalyse in zwei Teilsimulationen segmentiert. Durch eine proportionale Skalierung des Gesamteinsatzgewichtes im Berechnungsalgorithmus (Gewichtssplittung im Verhältnis 2:1) konnten die spezifischen Betriebspunkte für die vorderen Einheiten und die Heckeinheit isoliert bestimmt werden:
+
+\begin{itemize}
+    \item \textbf{Vorderachse (2-Blatt-Simulation):} Modellierung als virtueller Quadcopter bei zwei drittel des Abfluggewicht.
+    \item \textbf{Hinterachse (3-Blatt-Simulation):} Modellierung unter Skalierung des Simulationsgewichtes auf das ein-drittel-Fache des MTOM.
+\end{itemize}
+
+\noindent
+Aerodynamische Parameter wie der fahrzeugspezifische Widerstandsbeiwert ($c_w$-Wert) sowie sekundäre Systemverluste wurden für die Simulation konservativ geschätzt, um eine strukturelle Schlechtpunktbetrachtung einzunehmen. Die Simulationsergebnisse bestätigen für beide Durchläufe, sowohl im Flachland-Szenario (\SI{500}{\meter} ü.\,M.) als auch im alpinen Worst-Case-Szenario (\SI{4000}{\meter} ü.\,M. bei \SI{616}{\hecto\pascal} und \SI{40}{\celsius}), einen Betriebszustand im tiefgrünen Bereich. Die kalkulierte Regleröffnung im Schwebeflug (Throttle-Opening) verbleibt auch unter extremen Dichtehöhen-Verlusten stabil unter der kritischen Marke von \SI{75}{\percent}, wodurch dem System ausreichende Reglerreserven für transiente Flugphasen und böige Windverhältnisse zur Verfügung stehen.
+
 \section{Tilt Actuation System (TAS) \& Redundancy}
+
+\noindent
+Das Tilt Actuation System (TAS) stellt eine der kritischsten mechanischen und elektrotechnischen Schnittstellen des VTOL-Flugzeugs dar. Es ist für das präzise Schwenken der Motorgondeln während der Transitionsphase sowie für das Halten der Positionen im vertikalen Schwebeflug und horizontalen Reiseflug verantwortlich. Aufgrund der massiven physikalischen Belastungen und der geforderten Ausfallsicherheit ist dieses System redundant ausgelegt. Als primärer Aktuator wird der industrielle Luftfahrt-Servo Volz DA 30-HT-Dgewählt.
+
+\subsection{Mechanische Auslegung und Drehmomentberechnung}
+\noindent
+Für die Dimensionierung des Servos müssen die maximal auftretenden Drehmomente um die Schwenkachse berechnet werden. Das benötigte Gesamtdrehmoment $M_{\text{gesamt}}$ setzt sich additiv aus dem gyroskopischen Moment (Kreiselkraft des Rotors), dem aerodynamischen Moment (Windlast) und dem mechanischen Beschleunigungsmoment der Gondelmasse zusammen:
+
+\begin{equation}
+M_{\text{gesamt}} = M_{\text{Kreisel}} + M_{\text{Wind}} + M_{\text{Beschleunigung}}
+\end{equation}
+
+\noindent
+Da sich das Gesamtsystem in der Konzeptionsphase befindet, basieren die herangezogenen Werte für den Widerstandsbeiwert ($c_w$), die projizierten Frontalflächen ($A$) sowie die Massenträgheitsmomente ($I_{\text{Propeller}}$ und $I_{\text{Gondel}}$) auf fundierten, ingenieurmäßigen Schätzwerten und Referenzdaten vergleichbarer UAV-Systeme dieser Größenordnung. Diese Annahmen dienen als konservative Berechnungsgrundlage zur Absicherung der Systemkomponenten und werden im weiteren Entwicklungsverlauf durch detaillierte CAD-Analysen in Solid Edge sowie Strömungssimulationen (CFD) präzisiert.
+
+\noindent
+Das gyroskopische Präzisionsmoment $M_{\text{Kreisel}}$ resultiert aus der Drehung des massiven 30-Zoll-Propellers ($VZ30 \times 10.5$) bei gleichzeitiger Schwenkbewegung durch das Servo. Es berechnet sich über das Massenträgheitsmoment des Rotors $I_{\text{Propeller}}$, die Winkelgeschwindigkeit des Propellers $\omega_{\text{Propeller}}$ und die Schwenkgeschwindigkeit des Servos $\Omega_{\text{Tilt}}$:
+
+\begin{equation}
+M_{\text{Kreisel}} = I_{\text{Propeller}} \cdot \omega_{\text{Propeller}} \cdot \Omega_{\text{Tilt}}
+\end{equation}
+
+\noindent
+Unter Annahme des konservativen Schätzwerts für den schweren Carbon-Rotor von $I_{\text{Propeller}} \approx 0,0055\,\text{kg}\cdot\text{m}^2$ treten hierbei signifikante Querkräfte auf.
+
+\noindent
+Das aerodynamische Moment $M_{\text{Wind}}$ resultiert aus dem Fahrtwind, der während der Schwenkphase gegen die projizierte Frontalfläche drückt. Da die Schwenkachse konstruktionsbedingt einen Hebelarm von $d = 0,25\,\text{m}$ zum Flügel aufweist, wirkt die Luftkraft $F_{\text{Wind}}$ mit einem großen Biegemoment:
+
+\begin{equation}
+F_{\text{Wind}} = \frac{1}{2} \cdot \rho \cdot v^2 \cdot c_w \cdot A_{\text{Transition}}
+\end{equation}
+ 
+
+\begin{equation}
+M_{\text{Wind}} = F_{\text{Wind}} \cdot d
+\end{equation}
+
+\noindent
+Für den Worst-Case-Flugzustand (vollständige Transition bei $90^\circ$ Schwenkwinkel) wird mit einem geschätzten Widerstandsbeiwert von $c_w \approx 1,2$ und einer effektiven Blockadefläche des Propellerkreises von $A_{\text{Transition}} \approx 0,082\,\text{m}^2$ gerechnet. Bei einer Transitionsgeschwindigkeit von $15\,\text{m/s}$ ergibt sich ein Windmoment von ca. $3,39\,\text{Nm}$.
+
+\noindent
+Das Beschleunigungsmoment $M_{\text{Beschleunigung}}$ beschreibt die Kraft, die benötigt wird, um die Eigenmasse der Gondel ($m \approx 1,5\,\text{kg}$) aus dem Stillstand rotatorisch zu beschleunigen. Durch den großen Abstand von $25\,\text{cm}$ zur Achse erhöht sich das Massenträgheitsmoment der Gondel $I_{\text{Gondel}}$ drastisch (Satz von Steiner) auf geschätzte $0,10\,\text{kg}\cdot\text{m}^2$. Bei einer angenommenen Winkelbeschleunigung von $\alpha \approx 21\,\text{rad/s}^2$ ergibt sich:
+
+\begin{equation}
+M_{\text{Beschleunigung}} = I_{\text{Gondel}} \cdot \alpha \approx 2,1\,\text{Nm}
+\end{equation}
+
+\noindent
+Die Summe dieser ungedämpften Maximallasten im Flugbetrieb erfordert ein Stellmoment, das sich im Bereich von $5$ bis $10\,\text{Nm}$ bewegt. Der gewählte Aktuator Volz DA 30-HT-D ist mit einem Dauerdrehmoment von $36\,\text{Nm}$ und einem Spitzen-Haltemoment (Peak) von bis zu $64\,\text{Nm}$ ideal dimensioniert, um auch unvorhersehbare dynamische Lastspitzen durch Windböen sicher zu kompensieren.
+
+\subsection{Mechanische Sicherheitssysteme und Notfall-Szenarien}
+\noindent
+Trotz der hohen Auslegung des Aktuators müssen mechanische Notfallkonzepte für den Fall eines vollständigen Struktur- oder Systemversagens integriert werden. Sollte das TAS blockieren oder die Schwenkfunktion komplett ausfallen, sind folgende gestaffelte Sicherheitsstufen vorgesehen:
+
+\begin{itemize}
+    \item \textbf{Notfall-Schwebeflug (Emergency Hover Land):} Da es sich um ein VTOL-System handelt, ist die Multirotor-Konfiguration so ausgelegt, dass das Flugzeug selbst bei einer Fehlstellung der Schwenkgondeln (z. B. Blockierung im unvollständigen Reisewinkel) über die verbleibenden vertikalen Hubmotoren in einen stabilen Schwebeflug übergehen kann. Dies ermöglicht eine kontrollierte, wenn auch unsanfte vertikale Bruchlandung, bei der die Zelle die Aufprallenergie absorbiert, um die wertvolle Nutzlast zu schützen.
+    \item \textbf{Ballistisches Fallschirmsystem (Emergency Parachute):} Für den Fall eines katastrophalen Kontrollverlusts in großer Höhe (z. B. gleichzeitiger Ausfall des Tragflächenflugs und der Schwebemotoren) ist das VTOL mit einem pyrotechnisch oder ballistisch auslösenden Gesamtrettungsfallschirm ausgestattet. Dieses System bremst das gesamte Luftfahrzeug autonom ab und sichert das Sinken bis zum Boden.
+\end{itemize}
+
+\subsection{Elektronische Steuerung und Signalredundanz (TAS)}
+
+
 \section{Rotor/Propeller Design}
+
+\noindent
+Die aerodynamische Auslegung der Rotorgeometrien bildet die Schnittstelle zur Transformation der elektrischen Motorleistung in mechanischen Schub. Bei einem VTOL-System mit schwenkbaren Einheiten ergibt sich ein inhärenter physikalischer Zielkonflikt: Die Propeller müssen sowohl im statischen Schwebeflug (hoher Massenstrom bei geringer Durchströmgeschwindigkeit) als auch im schnellen Horizontalflug bei \SI{65}{\kilo\meter\per\hour} (hohe Fortschrittsziffer und axiale Anströmung) einen optimalen Wirkungsgrad erzielen. Für das Albatros-System wird dieser Konflikt durch eine differenzierte Geometrie- und Blattauslegung zwischen der Vorder- und Hinterachse aufgelöst.
+
+\noindent
+An den beiden vorderen Schwenkeinheiten (Tilt-Rotoren) kommen starre Carbon-Propeller der Dimension \SI{30}{Inch} Durchmesser $\times$ \num{10.5}{Inch} Steigung in einer klassischen 2-Blatt-Konfiguration zum Einsatz. Die Wahl eines großen Durchmessers von \SI{30}{Inch} maximiert die wirksame Kreisfläche, was insbesondere in der dünnen Höhenluft von \SI{4000}{\meter} ü.\,M. essenziell ist, um den induzierten Verlust des statischen Schubs zu kompensieren. Die vergleichsweise hohe Steigung von \num{10.5}{Inch} stellt sicher, dass die Rotoren nach dem Schwenkvorgang in den Reiseflugmodus bei reduzierter Motordrehzahl ausreichend axialen Vortrieb generieren, ohne in einen aerodynamischen Strömungsabriss oder den Zustand des Windmilling-Effekts zu geraten.
+
+\noindent
+Das Hecktriebwerk ist als reine Hubeinheit definiert und wird nach dem Transitionsvorgang im Fixed-Wing-Modus vollständig abgeschaltet. Da dieser Rotor ausschließlich für den vertikalen Auftrieb und die Nick-Stabilisierung dimensioniert wird, kommt hier eine abweichende Konfiguration zum Einsatz. Verbaut wird ein Carbon-Propeller mit der Dimension \SI{26}{Inch} Durchmesser $\times$ \num{8.5}{Inch} Steigung, welcher in einer 3-Blatt-Anordnung ausgeführt ist. 
+
+\noindent
+Der reduzierte Durchmesser von \SI{26}{Inch} ist konstruktiv durch die geometrischen Platzverhältnisse am Heckausleger bedingt. Um den daraus resultierenden Verlust an wirksamer Kreisfläche auszugleichen und dennoch den notwendigen statischen Standschub bereitzustellen, wird die Blattanzahl auf drei angehoben. Das 3-Blatt-Design erhöht die Gesamtauftriebsfläche des Rotors bei kompakteren Abmessungen. Die geringere Steigung von \num{8.5}{Inch} ist aerodynamisch auf maximale Effizienz im reinen Standschub (Starrluftschraube im Schwebeflug) optimiert, da in dieser Flugphase keine nennenswerte axiale Anströmung von vorne vorliegt. Im Vorwärtsflug verbleibt der Starrpropeller im Stillstand; der induzierte Zusatzwiderstand des stehenden Heckrotors wurde in den Gesamtwiderstandsbetrachtungen des Flugzeugs als konservativer Sicherheitsaufschlag berücksichtigt.
