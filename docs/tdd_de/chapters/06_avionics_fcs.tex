@@ -46,7 +46,7 @@ Ein kritischer Aspekt für den alpinen Einsatz bei extremen Wetterwechseln ist d
  konstanten Betriebstemperatur gehalten. Dies eliminiert mathematische Sensor-Drifts beim schnellen Aufstieg in kalte Luftschichten im Hochgebirge und garantiert 
  die präzise Stützung des Extended Kalman Filters (EKF).
 
-\subsubsection{Pinout and Port Assignment Matrix}
+% \subsubsection{Pinout and Port Assignment Matrix}
 
 \subsection{Companion Computer (CC) Integration}
 \label{sec:companion_computer_integration}
@@ -318,16 +318,47 @@ Kollisionen im BVLOS-Sichtlinienbetrieb und stellen die gesetzliche Konformität
 \end{itemize}
 
 \subsection{On-Board Communication Busses (Bus-Topologien)}
+\label{sec:bus_topologies}
+
+Die vernetzte Systemarchitektur des UAS basiert auf einer strikten Trennung zwischen deterministischen Echtzeit-Steuerungsdaten und hochbandbreitigen Missionsdatenströmen (siehe Systemübersicht in Abb.~\ref{fig:avionics_architecture}).
+
 \subsubsection{Deterministic Control via CAN-Bus (UAVCAN / Cyphal)}
+%Für die flugsicherheitskritische Peripheriekommunikation wird das differenzielle \textit{DroneCAN}-Protokoll (auf Basis von CAN-Bus mit $\SI{1}{\Mbps}$) genutzt. Diese Netzwerktopologie verbindet den primären Flugregler (Pixhawk 6X) in Reihe mit dem digitalen DLVR-Airspeed-Sensor, dem externen RM3100-Backup-Magnetometer und dem Holybro Remote ID Modul. Durch die physikalische Robustheit der CAN-Bus-Signalpegel wird eine deterministische, fehlertolerante Datenübertragung gewährleistet, die inhärent resistent gegen elektromagnetische Einkopplungen der Antriebsstränge ist.
+
 \subsubsection{High-Bandwidth Inter-Processor Bridge (Ethernet)}
+Die Übertragung von massiven Datenströmen – primär die H.264/H.265-RTSP-Videostreams der EO/IR-Gimbal-Kamera sowie der inter-prozessuale ROS~2-Netzwerkverkehr (via \textit{micro-XRCE-DDS}) zwischen der FMU und dem \textit{NVIDIA Jetson Orin Nano} – erfolgt über ein lokales Gigabit-Ethernet-Netzwerk (100BASE-TX). Die physikalische Verbindung wird an Bord über geschirmte, gewichtsoptimierte Cat.6-Flachbandkabel realisiert, um minimale Latenzen bei der KI-gestützten Personendetektion zu garantieren.
 
 \subsection{Power Distribution Architecture \texorpdfstring{\&}{\&} Safety Isolation}
+\label{sec:power_distribution}
+
+Die elektrische Versorgung der Avionik ist konsequent redundant und galvanisch von den transienten Spannungsspitzen des Antriebssystems isoliert.
+
 \subsubsection{Redundant Avionics Power Supply (BECs)}
+Die redundante Spannungsversorgung der flugsicherheitskritischen Avionik-Schiene wird über ein dediziertes High-End-Stromversorgungssystem vom Typ \textit{Mauch 053 Power-Cube 3 (V3)} realisiert \cite{premium_mauch_053}. Dieses Modul ist für Eingangsspannungen von bis zu $\SI{60.0}{\V}$ ($14\text{S Applikationen}$) spezifiziert und transformiert die $\SI{44.4}{\V}$ Nennspannung des zentralen LiPo-Antriebsstrangs abwärts. Der Power-Cube stellt zwei galvanisch getrennte Ausgänge mit jeweils $\SI{5.3}{\V}$ bei einem kontinuierlichen Nennstrom von je $\SI{10}{\A}$ zur Verfügung. Diese werden über die mitgelieferten, geschirmten \textit{Clik-Mate-6p}-Kabelstränge redundant an die Primär- und Sekundärbuchsen (\texttt{POWER1} und \texttt{POWER2}) des \textit{Pixhawk 6X v2B Standard Baseboards} geführt. Ein integriertes Dioden-Netzwerk garantiert ein unterbrechungsfreies Hard-Failover im Mikrosekundenbereich. Zudem stellt das Modul einen autarken $\SI{12.0}{\V}$-Leistungskanal ($\SI{10}{\A}$ konstant) bereit, welcher exklusiv für die Versorgung des EO/IR-Gimbals und der Failsafe-Aktuatorik genutzt wird.
+
+Zur vollständigen elektrischen Entkopplung des rechenintensiven Missionscomputers wird ein separater, ultrakompakter Abwärtsregler vom Typ \textit{Matek Systems mBEC12S} in das Avionik-Deck integriert \cite{premium_matek_mbec12s}. Das $\SI{2}{\g}$ leichte Modul operiert ebenfalls in einem Weitbereichs-Eingangsfeld bis $\SI{60}{\V}$ und wird über eine hardwarespezifische Lötbrücke fest auf eine Ausgangsspannung von $\SI{12.0}{\V}$ konfiguriert. Bei einer nominalen Systemspannung von $\SI{44.4}{\V}$ liefert das Modul einen kontinuierlichen Laststrom von über $\SI{1.3}{\A}$ sowie temporäre Stromspitzen von bis zu $\SI{3.0}{\A}$ ($\approx \SI{36}{\W}$ Peak). Dieser Ausgang speist direkt den DC-Barrel-Jack des \textit{NVIDIA Jetson Orin Nano Carrier Boards}. Durch diese strikte physische Partitionierung wird wirksam unterbunden, dass hochfrequente Lastwechsel oder transiente Störungen des KI-Missionscomputers auf die Messspannung der flugkritischen IMU-Sensorik durchschlagen.
+
 \subsubsection{Galvanic Isolation of the Propulsion System}
+Um zu verhindern, dass die massiven Stromänderungen ($\ge \SI{120}{\A}$) und die hochfrequente Taktung der drei Brushless-Hauptmotoren im VTOL-Startbetrieb auf die empfindliche Messsensorik (IMUs, Barometer) durchschlagen, ist der Antriebsstrang galvanisch vom Avionik-Regelkreis isoliert. Die Signalübertragung zu den ESCs und den Tri-Tilt-Servomotoren erfolgt über Optokoppler-Schnittstellen, was eine physische Trennung der Masse-Potentiale sicherstellt.
 
 \subsection{Electromagnetic Compatibility (EMV) \texorpdfstring{\&}{\&} Shielding Concept}
+\label{sec:emv_shielding}
+
+Zur Gewährleistung der elektromagnetischen Verträglichkeit innerhalb der engen Struktur des Rumpfmonocoques wurden konstruktive Schutzmaßnahmen implementiert.
+
 \subsubsection{Component Placement and Spatial Separation}
+Die Systemkomponenten sind geometrisch nach ihrem Störpotenzial partitioniert. Während die Hochstrom-Leistungsverteilung (\textit{Power Distribution Board}) und die Motorregler im unteren Rumpfbereich positioniert sind, befindet sich das Avionik-Deck im geschützten oberen Segment. Sensoren mit hoher HF-Empfindlichkeit, wie das RM3100-Backup-Magnetometer und die GNSS-Empfänger, sind geometrisch isoliert in den Tragflächenspitzen bzw. auf einem CFK-Ausleger platziert.
+
 \subsubsection{Physical Shielding and Grounding}
+Signal- und Datenleitungen (insbesondere Ethernet- und Kamera-Signalkabel) sind mit einer hochflexiblen, ultraleichten EMV-Abschirmung versehen. Das gesamte UAS nutzt ein zentrales, sternförmiges Erdungskonzept (\textit{Single-Point Grounding}), bei dem alle Abschirmungen und Gehäusemassen an einem definierten Potenzialpunkt zusammenlaufen. Dies unterbindet das Entstehen von Masseschleifen, welche die Extended-Kalman-Filter-Berechnungen stören könnten.
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{../data/06_avionics/Avionics_Sketch_Image.png}
+    \caption{Systemtopologie-Sketch der Avionik-Infrastruktur}
+    \label{fig:avionics_architecture}
+\end{figure}
 
 
 \newpage
@@ -338,7 +369,6 @@ Die exakte Erfassung aller Einzelmassen innerhalb des Avionik-, Sensorik- und Nu
 
 \vspace{0.2cm}
 
-% HINWEIS: Erfordert \usepackage{longtable} in der Präambel
 \begin{longtable}{p{6.0cm} p{5.0cm} p{2.5cm}}
     \caption{Vollständige Massenbilanz des Avionik-, Sensorik- und Peripherie-Stacks} \label{tab:avionics_mass_balance} \\
     \toprule
@@ -386,15 +416,19 @@ Die exakte Erfassung aller Einzelmassen innerhalb des Avionik-, Sensorik- und Nu
     ~~Holybro Remote ID Module & EU-Fernkennungs-Platine (ohne Gehäuse) & $\SI{4}{\g}$ \\
     \midrule
     
+    \textbf{Spannungsversorgung (Power Stacks)} & & \\
+    ~~Mauch 053 Power-Cube 3 (V3) & Redundantes 12S-Avionik-BEC inkl. Lüfter & $\SI{86}{\g}$ \\
+    ~~Matek Systems mBEC12S & Separates 12S-Jetson-Spannungsmodul & $\SI{2}{\g}$ \\
+    \midrule
+    
     \textbf{Nutzlast \& Verkabelung} & & \\
     ~~Foxtech Seeker EO \& Ranging AI & 3-Achsen-Gimbal-Kamera (Max-Szenario) & $\SI{800}{\g}$ \\
     ~~Payload Interface \& Dämpfung & Mechanische CFK-Aufhängung \& Puffer & $\SI{65}{\g}$ \\
     ~~Avionik-Gesamtverkabelung & JST-GH, Cat.6-Ethernet, Coaxial \& CAN & $\SI{150}{\g}$ \\
     \midrule
     
-    \textbf{Gesamtgewicht Avionik/Payload} & \textbf{Reine Elektronik- und Nutzlastmasse} & \textbf{\SI{1648.3}{\g} (\SI{1.648}{\kg})} \\
+    \textbf{Gesamtgewicht Avionik/Payload} & \textbf{Reine Elektronik- und Nutzlastmasse} & \textbf{\SI{1736.3}{\g} (\SI{1.736}{\kg})} \\
 \end{longtable}
-
 
 \section{Flight Control Laws (C-Laws for Conversion Mode)}
 \section{Sensor Fusion Matrix (IMU, GNSS, Air-Data)}
