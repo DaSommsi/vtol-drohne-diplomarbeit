@@ -1,0 +1,117 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[german]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{multicol}
+\usepackage{siunitx}
+\usepackage{xcolor}
+\usepackage{titlesec}
+
+% Maximale Raumausnutzung für ein exaktes 1-Seiten-Handout
+\geometry{verbose,tmargin=1.0cm,bmargin=1.0cm,lmargin=1.2cm,rmargin=1.2cm}
+
+\definecolor{armygreen}{RGB}{53, 94, 59}
+\definecolor{darkgray}{RGB}{40, 40, 40}
+
+\titleformat{\section}{\color{armygreen}\normalfont\large\bfseries}{\thesection}{1em}{}[{\color{armygreen}\titlerule}]
+\titleformat{\subsection}{\color{darkgray}\normalfont\small\bfseries}{\thesubsection}{1em}{}
+
+\begin{document}
+\pagestyle{empty} 
+
+% Header
+\begin{center}
+    {\LARGE\bfseries PROJECT ATARIS} \\[0.1cm]
+    {\large\bfseries Autonomes VTOL-Hybrid-UAS für den alpinen Katastrophenschutz} \\[0.05cm]
+    {\small\bfseries Systemvorstellung \& Operationales Betriebskonzept (CONOPS) | HTBLuVA Salzburg} \\[0.1cm]
+    \rule{\textwidth}{1.2pt}
+\end{center}
+
+\begin{multicols}{2}
+
+\section{Missionsprofil (CONOPS)}
+Das unbemannte Luftfahrzeugsystem (UAS) wurde für den autonomen Langstreckeneinsatz (BVLOS) bei Such- und Rettungsaktionen (SAR) sowie im Katastrophenschutz entwickelt.
+\begin{itemize}
+    \item \textbf{Hybrid-Flugprofil:} Vertikaler Start und Landung (VTOL) als Multirotor auf unvorbereitetem Gelände. Autonome Transition in den hocheffizienten Starrflügel-Reiseflug für maximale Reichweite.
+    \item \textbf{Autonome Suchmission:} Das Zielgebiet wird via Bodenstation als Polygon definiert. Das UAS fliegt das Suchraster komplett autark ab, detektiert Personen per optisch-thermischer Sensorik und überträgt Live-Koordinaten.
+    \item \textbf{Dezentraler Schwarmbetrieb:} Die Systemarchitektur ist für den zeitgleichen, kooperativen Verbundeinsatz mehrerer Luftfahrzeuge ausgelegt.
+\end{itemize}
+
+\section{Regulatorische Einstufung (SORA)}
+Das System ist von Grund auf für die behördliche Betriebsbewilligung (Austro Control / EASA) im zivilen und militärischen Luftraum dimensioniert:
+\begin{itemize}
+    \item \textbf{Kategorie:} Einordnung in die \textit{Specific}-Kategorie (BVLOS-Betrieb über dünn besiedeltem/alpinem Gebiet).
+    \item \textbf{Risiko-Niveau:} Auslegung nach dem SORA-Leitfaden für die anspruchsvolle Risikoklasse \textbf{SAIL IV} (Standard) bzw. \textbf{SAIL I} (in militärischen Sperrräumen).
+    \item \textbf{Sicherheitsbarrieren:} Integrierte Hardware-Konformität zu \textbf{EASA MOC 2511} (\textit{Enhanced Containment} gegen Fly-Aways) sowie europäische \textbf{Direct Remote ID}.
+\end{itemize}
+
+\subsection{Sicherheits- \& Notfallverfahren}
+\begin{itemize}
+    \item \textbf{GPS-Ausfall (Dead Reckoning):} Sensorfusion aus IMU und Staurohr-Airspeed ermöglicht autonome Koppelnavigation zurück zur Home-Position bei Satellitensignalverlust.
+    \item \textbf{Flight Termination System (FTS):} Ein vom Autopiloten komplett isoliertes, autarkes Hardware-Notabschaltsystem löst bei Kontrollverlust einen \textit{Hard Kill} der Motoren sowie das Rettungsfallschirmsystem (PRS) aus.
+\end{itemize}
+
+\section{Operationelle Grenzen (Envelopes)}
+Das System ist gezielt auf die harten meteorologischen Bedingungen des Hochgebirges ausgelegt:
+\begin{itemize}
+    \item \textbf{Wind- \& Böenlimits:} Bis zu $\SI{12}{\m/\s}$ konstanter Wind im Reiseflug. Automatische Gegenwind-Ausrichtung im Schwebeflug vor der Transition zur aerodynamischen Entlastung der Mechanik.
+    \item \textbf{Thermischer Einsatzbereich:} $-10^\circ\text{C}$ bis $+40^\circ\text{C}$ am Boden. Integrierte thermodynamische Passiv-Isolierung schützt die Avionik auf bis zu $\SI{4000}{\m}$ Einsatzhöhe.
+    \item \textbf{Umweltschutz:} Vollständige Kapselung der Elektronik und Antriebe nach IP54 (Schutz gegen Staub und Spritzwasser/Schneefall).
+\end{itemize}
+
+\end{multicols}
+
+\vspace{0.1cm}
+\section{Technische Leistungsdaten \& Key Facts}
+\rule{\textwidth}{0.5pt}
+\vspace{0.1cm}
+
+\begin{small}
+\begin{tabular}{p{5.5cm} p{4.5cm} p{4.5cm}}
+    \textbf{Parameter} & \textbf{Zielwert (Metrisch)} & \textbf{Luftfahrt-Spezifikation} \\
+    \midrule
+    Maximales Abfluggewicht (MTOM) & \textbf{< 20,0 kg Klasse} & -- \\
+    Gesamtmasse Avionik- \& Payload-Stack & $\SI{1736.3}{\g}$ (inkl. Verkabelung) & Maximales Nutzlast-Szenario \\
+    Mindestgeschwindigkeit ($V_{stall}$) & $\SI{12.5}{\m/\s}$ & $\approx 24{,}3\,\text{kt}$ (Starrflügel-Mindestauftrieb) \\
+    Marschgeschwindigkeit ($V_{cruise}$) & $\SI{18.0}{\m/\s}$ bis $\SI{22.0}{\m/\s}$ & $\approx 35\,\text{kt}$ bis $43\,\text{kt}$ (Sensor-Optimum) \\
+    Strukturelle Belastungsgrenze ($V_{NE}$) & $\SI{36.0}{\m/\s}$ & $\approx 70{,}0\,\text{kt}$ (\textit{Never-Exceed Speed}) \\
+    Standard-Einsatzflughöhe & $\SI{250}{\m}$ über Grund (AGL) & $\approx 820\,\text{ft}$ AGL \\
+    Maximale Betriebshöhe & $\SI{4000}{\m}$ über Meer (MSL) & $\approx 13.123\,\text{ft}$ MSL \\
+    Strukturelles Lastvielfaches ($n$) & $-1{,}0\,\text{g}$ (Minimum) & $+3{,}0\,\text{g}$ (Maximum) \\
+    Flugzeit \& Energie-Topologie & $\ge 60\,\text{Minuten}$ (inkl. Res.) & $\SI{44.4}{\V}$ Nennspannung (12S LiPo) \\
+    \bottomrule
+\end{tabular}
+\end{small}
+\newpage
+\vspace{0.3cm}
+
+\begin{multicols}{2}
+
+\section{Kooperationsziele mit dem ÖBH}
+Für die anstehende Realisierungs- und Testphase des mechatronischen Prototypen suchen wir strategische Partnerschaften bezüglich:
+\begin{itemize}
+    \item \textbf{Erprobungsflächen:} Nutzung militärischer Übungsplätze für sichere Transitions- und BVLOS-Testflüge im gesperrten Luftraum.
+    \item \textbf{Dienststellen-Austausch:} Fachlicher Dialog mit Drohnen-Einheiten (z.B. Schwarzenbergkaserne) zur Praxis-Evaluierung der Suchalgorithmen.
+    \item \textbf{Projektunterstützung:} Fachbegutachtungen sowie industrielle Vernetzung zur materiellen Absicherung der Sensorik.
+\end{itemize}
+
+\section{Projektdaten \& Kontakt}
+\textbf{Institution:} \\
+Höhere Technische Bundeslehr- und Versuchsanstalt Salzburg \\
+Abteilung für Elektrotechnik \\
+Itzlinger Hauptstraße 30, 5020 Salzburg \\
+
+\vspace{0.1cm}
+\textbf{Projektteam:} \\
+David Sommerer \\
+Telefon: +43 670 4080615 \\
+E-Mail: david.sommerer08@htl-salzburg.ac.at \\
+
+Sebastian Minkenberg \\
+E-Mail: sebastian.minkenberg09@htl-salzburg.ac.at \\
+
+\end{multicols}
+
+\end{document}
