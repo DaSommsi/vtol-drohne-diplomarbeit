@@ -46,7 +46,46 @@ Ein kritischer Aspekt für den alpinen Einsatz bei extremen Wetterwechseln ist d
  konstanten Betriebstemperatur gehalten. Dies eliminiert mathematische Sensor-Drifts beim schnellen Aufstieg in kalte Luftschichten im Hochgebirge und garantiert 
  die präzise Stützung des Extended Kalman Filters (EKF).
 
-% \subsubsection{Pinout and Port Assignment Matrix}
+\subsubsection{Pinout and Port Assignment Matrix}
+\label{sec:pinout_port_assignment_matrix}
+
+Zur systematischen Dokumentation und Vermeidung von Fehlverkabelungen innerhalb der Hardware-Integration fasst Tabelle~\ref{tab:pixhawk_port_assignment} die physische Belegungsmatrix des \textit{Pixhawk 6X v2B Standard Baseboards} zusammen. Die Schnittstellen sind strikt nach ihrer funktionalen Priorität und den zugrundeliegenden Bus-Topologien (Serial UART, CAN-Bus, Ethernet, PWM und Power) partitioniert.
+
+\begin{table}[h!]
+    \centering
+    \caption{Physische Port-Belegungsmatrix des Pixhawk 6X v2B Baseboards}
+    \vspace{0.2cm}
+    \begin{small}
+    \begin{tabular}{p{2.5cm} p{4.5cm} p{3.2cm} p{2.8cm}}
+        \toprule
+        \textbf{Baseboard Port} & \textbf{Angeschlossenes Subsystem} & \textbf{Protokoll / Signal} & \textbf{Versorgung} \\
+        \midrule
+        \texttt{POWER1} & Mauch 053 Power-Cube 3 (Primär) & Analog / Telemetrie & $\SI{5.3}{V}$ System IN \\
+        \texttt{POWER2} & Mauch 053 Power-Cube 3 (Sekundär) & Analog / Telemetrie & $\SI{5.3}{V}$ System IN (Redundanz) \\
+        \midrule
+        \texttt{GPS1} & Holybro M10 GNSS & UBX / MAVLink / I2C & $\SI{5.0}{V}$ via Port \\
+        \texttt{GPS2} & Holybro H-RTK F9P Rover GPS & UBX / RTCM3 & $\SI{5.0}{V}$ via Port \\
+        \midrule
+        \texttt{TELEM1} & CubePilot Herelink Air Unit v1.1 & MAVLink Telemetrie & $\SI{5.0}{V}$ via Port \\
+        \texttt{TELEM2} & uAvionix pingRX Pro (ADS-B In) & MAVLink (DAA) & $\SI{5.0}{V}$ via Port \\
+        \texttt{TELEM3} & LightWare SF11/C LiDAR & Serial / UART (AGL) & $\SI{5.0}{V}$ via Port \\
+        \midrule
+        \texttt{CAN1} & CAN-Bus-Strang (DLVR Airspeed, RM3100 Compass, ARK Flow, Remote ID) & DroneCAN / Cyphal ($1\,Mbps$) & $\SI{5.0}{V}$ via Bus \\
+        \texttt{CAN2} & Reserved / Expansion Port & -- & -- \\
+        \midrule
+        \texttt{ETH} & NVIDIA Jetson Orin Nano / Network & MAVLink over UDP & Gigabit Ethernet \\
+        \texttt{AD\&I/O} & NVIDIA Jetson Orin Nano Header & Serial / UART (Backup-Bridge) & Logic Level ($\SI{3.3}{V}$) \\
+        \midrule
+        \texttt{M1 -- M3} & Dronavia Zephyr CC ESC MF (FTS) $\rightarrow$ ESCs / Servos & PWM Steuerleitungen & Galv. Isoliert \\
+        \bottomrule
+    \end{tabular}
+    \end{small}
+    \label{tab:pixhawk_port_assignment}
+\end{table}
+
+Wie in Abbildung~\ref{fig:avionics_architecture} dargestellt, sichert diese Topologie eine lückenlose Trennung zwischen der hochfrequenten Echtzeit-Regelung auf den CAN- und PWM-Bussen sowie dem datenintensiven Netzwerkverkehr über den \texttt{ETH}-Port ab.
+
+\pagebreak
 
 \subsection{Companion Computer (CC) Integration}
 \label{sec:companion_computer_integration}
