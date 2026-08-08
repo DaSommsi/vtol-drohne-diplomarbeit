@@ -1,0 +1,30 @@
+\chapter{On-Board Software Architecture \& Autonomy Stack}
+\label{ch:software_autonomy}
+
+\section{System-Level Software Topology (PX4 meets ROS 2)}
+\label{sec:software_topology}
+% Erklärung der zwei Welten: PX4 auf dem Pixhawk (Echtzeit/uORB) 
+% und ROS 2 Humble auf dem Jetson Orin Nano (Linux/Missionslogik).
+
+\section{Inter-Processor Bridge (micro-XRCE-DDS)}
+\label{sec:xrce_dds_bridge}
+% Beschreibung der Datenbrücke über Ethernet zwischen Autopilot und Companion Computer.
+
+\section{ROS 2 Node Architecture \& Communication Matrix}
+\label{sec:ros2_node_architecture}
+% Detaillierte Beschreibung aller Nodes (ai_perception, target_geolocator, swarm_coordinator)
+% inkl. der Tabelle mit Publishers, Subscribers und Topics.
+
+\section{AI Perception Pipeline (YOLO \& TensorRT)}
+\label{sec:ai_perception_pipeline}
+% Einbindung des EO/IR-RTSP-Videostreams, Hardware-Beschleunigung auf dem Jetson
+% und Transformation von Pixel-Koordinaten in reale GPS-Daten (WGS84/MGRS).
+
+\section{Decentralized Swarm Logic \& Multi-Agent Framework}
+\label{sec:swarm_logic}
+% Wie die Drohnen dezentral via Namespaces (/uav_N/) und P2P-Protokoll 
+% das Suchgebiet aufteilen und Personen-Fundmeldungen austauschen.
+
+\section{Multi-Vehicle SITL Simulation (Gazebo \& PX4)}
+\label{sec:gazebo_multi_vehicle_sim}
+% Nachweis der Funktionsfähigkeit der Schwarm-Software mit 3 simulierten VTOLs in Gazebo.
