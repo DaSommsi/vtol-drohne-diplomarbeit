@@ -21,7 +21,7 @@
 
 ## 📌 Projektübersicht (Deutsch)
 
-Dieses Diplomprojekt an der **HTL Salzburg (Elektrotechnik)** umfasst die konzeptionelle Auslegung, thermodynamische/aerodynamische Simulation, mechatronische Entwicklung und Fertigung eines autonomen, 3 Meter großen **Dual-Tilt-Rotor VTOL-UAVs** (MTOM ~26,5 kg). Das Flugsystem ist speziell für **alpine Such- und Rettungseinsätze (SAR / Bergrettung)** sowie den Katastrophenschutz in hochalpinem Terrain (bis zu 4.000 m ü. A.) ausgelegt.
+Dieses Diplomprojekt an der **HTL Salzburg (Elektrotechnik)** umfasst die konzeptionelle Auslegung, thermodynamische/aerodynamische Simulation, mechatronische Entwicklung und Fertigung eines autonomen, 3 Meter großen **Dual-Tilt-Rotor VTOL-UAVs** (MTOM 15 – 20 kg). Das Flugsystem ist speziell für **alpine Such- und Rettungseinsätze (SAR / Bergrettung)** sowie den Katastrophenschutz in hochalpinem Terrain (bis zu 4.000 m ü. A.) ausgelegt.
 
 ### ⚙️ Antriebs- & Flugkonzept
 Um eine maximale aerodynamische Effizienz im Vorwärtsflug und hohe Reichweiten ($\le 30\text{ km}$ Radius) zu erzielen, verzichtet das Fluggerät vollständig auf dedizierte Schwebeflug-Motoren (kein klassisches Quadcopter-Setup). Stattdessen setzt das System auf ein **asymmetrisches Tri-Tilt-Rotor-Konzept**:
@@ -32,7 +32,7 @@ Um eine maximale aerodynamische Effizienz im Vorwärtsflug und hohe Reichweiten 
 
 ## 🌐 Project Overview (English)
 
-This diploma project at **HTL Salzburg (Department of Electrical Engineering)** covers the aerodynamic design, mechatronic development, hardware-in-the-loop simulation, and structural construction of a modular 3-meter **Dual-Tilt-Rotor VTOL UAV** (MTOM ~26.5 kg). Engineered for **alpine Search & Rescue (SAR)** operations, the aircraft operates under extreme weather and atmospheric conditions (elevations up to 4,000 m MSL and temperatures down to -35°C).
+This diploma project at **HTL Salzburg (Department of Electrical Engineering)** covers the aerodynamic design, mechatronic development, hardware-in-the-loop simulation, and structural construction of a modular 3-meter **Dual-Tilt-Rotor VTOL UAV** (MTOM 15 – 20 kg). Engineered for **alpine Search & Rescue (SAR)** operations, the aircraft operates under extreme weather and atmospheric conditions (elevations up to 4,000 m MSL and temperatures down to -35°C).
 
 ### ⚙️ Propulsion & Flight Concept
 To achieve maximum aerodynamic efficiency and extended range ($\le 30\text{ km}$ operational radius) during wing-borne cruise, the aircraft eliminates redundant hover motors. Instead, it utilizes an **asymmetric Tri-Tilt-Rotor topology**:
@@ -46,7 +46,7 @@ To achieve maximum aerodynamic efficiency and extended range ($\le 30\text{ km}$
 | Parameter | Specification | Details / Operational Range |
 | :--- | :--- | :--- |
 | **Wingspan / Length** | $3.0\text{ m}$ span | Modular quick-assembly carbon wings |
-| **Max Take-Off Mass (MTOM)** | $\approx 26.5\text{ kg}$ | Target weight class: 20 – 30 kg |
+| **Max Take-Off Mass (MTOM)** | $15 – 20\text{ kg}$ | Target weight class: 15 – 20 kg |
 | **Payload Capacity** | $1.0\text{ kg}$ | Dual EO/IR Stabilized Optical/Thermal Gimbal |
 | **Power Supply** | $12\text{S LiPo}$ ($44.4\text{ V}$ nominal) | Distributed Power Distribution Board (PDB) |
 | **Cruise Speed ($V_{\text{cruise}}$)** | $18\text{ m/s}$ ($\approx 65\text{ km/h}$) | Optimised for thermal/optical AI scan pattern |
@@ -131,59 +131,6 @@ To achieve maximum aerodynamic efficiency and extended range ($\le 30\text{ km}$
 ├── run.ps1                   # Automation & LaTeX project setup script
 └── README.md                 # Project README
 ```
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- **Operating System:** Linux (Ubuntu 22.04 LTS recommended) or WSL2 on Windows
-- **ROS 2:** Humble Hawksbill (`ros-humble-desktop-full`)
-- **Simulation:** Gazebo Fortress / Ignition Gazebo
-- **Build System:** `colcon`, `cmake`, `g++`
-- **LaTeX (for TDD compilation):** `texlive-full`, `latexmk`
-
-### 1. Building the ROS 2 Workspace
-```bash
-# Clone the repository
-git clone https://github.com/DaSommsi/vtol-drohne-diplomprojekt.git
-cd vtol-drohne-diplomprojekt
-
-# Build ROS 2 packages
-colcon build --symlink-install
-source install/setup.bash
-```
-
-### 2. Running the Gazebo Simulation
-```bash
-# Launch Gazebo world with VTOL dual-tilt rotor model
-ros2 launch vtol_gazebo vtol_sim.launch.py
-```
-
-### 3. Compiling Technical Design Documents (LaTeX)
-To build the German Technical Design Document (TDD):
-```bash
-cd docs/tdd_de
-latexmk -pdf main_de.tex
-```
-
----
-
-## 👥 Team & Contact
-
-<div align="center">
-
-| Author | Role / Focus Area | Institution |
-| :--- | :--- | :--- |
-| **David Sommerer** | Avionics, Software Architecture, ROS 2, CONOPS & SORA | HTL Salzburg (Elektrotechnik) |
-| **Sebastian Minkenberg** | Propulsion, Tilt Mechanics, Aerodynamics & CAD | HTL Salzburg (Elektrotechnik) |
-
-**Diploma Thesis Advisory / Partners:**
-- **HTL Salzburg** – Höhere Technische Bundeslehranstalt Salzburg (Abteilung Elektrotechnik)
-- **Österreichisches Bundesheer** – Tactical & Logistics Support
-- **Austro Control** – Regulatory Compliance & SORA Guidance
-
-</div>
 
 ---
 
